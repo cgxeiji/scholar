@@ -1,0 +1,17 @@
+article:
+    desc: An article in a journal, magazine, newspaper, or other periodical which forms a self-contained unit with its own title.
+    req:
+        author: Author(s) of the article.
+        title: Title of the article.
+        journaltitle: Title of the journal.
+        date: YYYY-MM-DD format.
+    opt:
+        editor: Editor(s) of the journal.
+        language: Language of the article.
+        series: Series of the journal.
+        volume: Volume of the journal.
+        number: Number of the journal.
+        issn: ISSN number of the article.
+        doi: DOI code of the article.
+        url: URL of the article.
+        urldate: Access date in YYY-MM-DD format.
