@@ -1,0 +1,17 @@
+type: article
+key: last2009
+req:
+  author: Last, First
+  date: "2009"
+  journaltitle: A Journal of Things
+  title: The Title
+opt:
+  doi: ""
+  editor: ""
+  issn: ""
+  language: ""
+  number: ""
+  series: ""
+  url: ""
+  urldate: ""
+  volume: ""
