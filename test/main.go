@@ -2,16 +2,14 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
+	"github.com/cgxeiji/crossref"
 	"github.com/cgxeiji/scholar"
 	"gopkg.in/yaml.v2"
 )
@@ -19,34 +17,53 @@ import (
 var folder string = "ScholarTest"
 
 func AddDOI(es *scholar.Entries, doi string) {
-	fmt.Println(fmt.Sprintf("https://api.crossref.org/v1/works/%s", doi))
-	resp, err := http.Get(fmt.Sprintf("https://api.crossref.org/v1/works/%s", doi))
-	//resp, err := http.Get("https://google.com")
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-	raw, err := ioutil.ReadAll(resp.Body)
+	client := crossref.NewClient("Scholar", "mail@example.com")
+
+	work, err := client.Works(doi)
 	if err != nil {
 		panic(err)
 	}
 
-	var data map[string]interface{}
-	json.Unmarshal(raw, &data)
+	entry := es.Parse("crossref", work.Type)
 
-	// fmt.Println(data)
-
-	content, _ := data["message"].(map[string]interface{})
-	fmt.Println(content["type"])
-	fmt.Println("Title:", content["title"])
-	fmt.Println("In:", content["container-title"])
-
-	fmt.Println("Author:")
-	authors := reflect.ValueOf(content["author"])
-	for i := 0; i < authors.Len(); i++ {
-		author := authors.Index(i).Interface().(map[string]interface{})
-		fmt.Println("  ", author["given"], author["family"])
+	for _, a := range work.Authors {
+		entry.Required["author"] = fmt.Sprintf("%s%s, %s and ", entry.Required["author"], a.Last, a.First)
 	}
+	entry.Required["author"] = strings.TrimSuffix(entry.Required["author"], " and ")
+	entry.Required["date"] = work.Date
+	entry.Required["title"] = work.Titles[0]
+
+	if entry.Type == "inproceedings" {
+		entry.Required["booktitle"] = work.BookTitles[0]
+	} else {
+		entry.Required["journaltitle"] = work.BookTitles[0]
+	}
+
+	entry.Optional["volume"] = work.Volume
+	entry.Optional["number"] = work.Issue
+	entry.Optional["doi"] = work.DOI
+
+	key := entry.GetKey()
+	saveTo := filepath.Join(folder, key)
+
+	// TODO: check for unique key and directory names
+
+	err = os.MkdirAll(saveTo, os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+
+	d, err := yaml.Marshal(entry)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(d))
+	ioutil.WriteFile(filepath.Join(saveTo, "entry.yaml"), d, 0644)
+
+	var en scholar.Entry
+	yaml.Unmarshal(d, &en)
+	fmt.Println(en.Bib())
+	en.Check()
 }
 
 func Add(es *scholar.Entries, entryType string) {
@@ -138,6 +155,7 @@ func main() {
 	if *fAdd != "" {
 		// Add(entries, *fAdd)
 		AddDOI(entries, "http://dx.doi.org/10.1016/0004-3702(89)90008-8")
+		AddDOI(entries, "http://dx.doi.org/10.1117/12.969296")
 	}
 
 	if *fExport {

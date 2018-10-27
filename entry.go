@@ -117,6 +117,22 @@ type Entries struct {
 	Map map[string]*EntryType
 }
 
+func (es *Entries) Parse(service, eType string) *Entry {
+	switch service {
+	case "crossref":
+		switch eType {
+		case "journal-article":
+			return es.Map["article"].Get()
+		case "proceedings-article":
+			return es.Map["inproceedings"].Get()
+		default:
+			return es.Map["article"].Get()
+		}
+	}
+
+	return &Entry{}
+}
+
 func (es *Entries) Load(file string) error {
 	d, err := ioutil.ReadFile(file)
 	if err != nil {
