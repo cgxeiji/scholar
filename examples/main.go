@@ -14,9 +14,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var folder string = "ScholarTest"
+var folder = "ScholarTest"
 
-func AddDOI(es *scholar.Entries, doi string) {
+func AddDOI(doi string) {
 	client := crossref.NewClient("Scholar", "mail@example.com")
 
 	work, err := client.Works(doi)
@@ -24,7 +24,7 @@ func AddDOI(es *scholar.Entries, doi string) {
 		panic(err)
 	}
 
-	entry := es.Parse("crossref", work.Type)
+	entry := scholar.NewEntry("crossref", work.Type)
 
 	for _, a := range work.Authors {
 		entry.Required["author"] = fmt.Sprintf("%s%s, %s and ", entry.Required["author"], a.Last, a.First)
@@ -66,12 +66,12 @@ func AddDOI(es *scholar.Entries, doi string) {
 	en.Check()
 }
 
-func Add(es *scholar.Entries, entryType string) {
+func Add(entryType string) {
 
-	entry := es.Map[entryType].Get()
+	entry := scholar.NewEntry("none", entryType)
 
 	reader := bufio.NewReader(os.Stdin)
-	for field, _ := range entry.Required {
+	for field := range entry.Required {
 		fmt.Printf("%v: ", field)
 		text, _ := reader.ReadString('\n')
 		text = strings.Trim(text, " \n")
@@ -141,21 +141,19 @@ func main() {
 
 	flag.Parse()
 
-	entries := &scholar.Entries{}
-
-	err := entries.Load("types.yaml")
+	err := scholar.LoadTypes("types.yaml")
 	if err != nil {
 		panic(err)
 	}
 
 	if *fPrintEntryTypes {
-		entries.Show(*fPrintEntryLevel)
+		scholar.TypesInfo(*fPrintEntryLevel)
 	}
 
 	if *fAdd != "" {
 		// Add(entries, *fAdd)
-		AddDOI(entries, "http://dx.doi.org/10.1016/0004-3702(89)90008-8")
-		AddDOI(entries, "http://dx.doi.org/10.1117/12.969296")
+		AddDOI("http://dx.doi.org/10.1016/0004-3702(89)90008-8")
+		AddDOI("http://dx.doi.org/10.1117/12.969296")
 	}
 
 	if *fExport {
