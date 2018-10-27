@@ -30,7 +30,7 @@ func (e *entryType) get() *Entry {
 	return &c
 }
 
-func (e *entryType) Info(level int) {
+func (e *entryType) info(level int) {
 	fmt.Println(e.Type, ":", e.Description)
 
 	if level > 0 {

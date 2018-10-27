@@ -11,10 +11,11 @@ import (
 
 	"github.com/cgxeiji/crossref"
 	"github.com/cgxeiji/scholar"
+	homedir "github.com/mitchellh/go-homedir"
 	"gopkg.in/yaml.v2"
 )
 
-var folder = "ScholarTest"
+var folder = "~/ScholarTest"
 
 func AddDOI(doi string) {
 	client := crossref.NewClient("Scholar", "mail@example.com")
@@ -134,6 +135,12 @@ func Export() {
 }
 
 func main() {
+	fm, err := homedir.Expand(folder)
+	if err != nil {
+		panic(err)
+	}
+	folder = fm
+
 	fPrintEntryTypes := flag.Bool("types", false, "Show available entry types")
 	fPrintEntryLevel := flag.Int("level", 0, "Set the level of information to be shown")
 	fAdd := flag.String("add", "", "Add a new entry")
@@ -141,7 +148,7 @@ func main() {
 
 	flag.Parse()
 
-	err := scholar.LoadTypes("types.yaml")
+	err = scholar.LoadTypes("types.yaml")
 	if err != nil {
 		panic(err)
 	}

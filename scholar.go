@@ -40,7 +40,7 @@ func TypesInfo(level int) {
 	}
 	sort.Strings(eNames)
 	for _, name := range eNames {
-		entryTypes[name].Info(level)
+		entryTypes[name].info(level)
 		fmt.Println()
 	}
 }
