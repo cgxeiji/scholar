@@ -61,6 +61,11 @@ type Entry struct {
 	Key      string            `yaml:"key"`
 	Required map[string]string `yaml:"req"`
 	Optional map[string]string `yaml:"opt"`
+	File     string            `yaml:"file"`
+}
+
+func (e *Entry) Attach(file string) {
+	e.File = file
 }
 
 func (e *Entry) Check() error {

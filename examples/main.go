@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,12 +13,13 @@ import (
 	"github.com/cgxeiji/crossref"
 	"github.com/cgxeiji/scholar"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/skratchdot/open-golang/open"
 	"gopkg.in/yaml.v2"
 )
 
 var folder = "~/ScholarTest"
 
-func AddDOI(doi string) {
+func addDOI(doi string) *scholar.Entry {
 	client := crossref.NewClient("Scholar", "mail@example.com")
 
 	work, err := client.Works(doi)
@@ -32,24 +34,28 @@ func AddDOI(doi string) {
 	}
 	entry.Required["author"] = strings.TrimSuffix(entry.Required["author"], " and ")
 	entry.Required["date"] = work.Date
-	entry.Required["title"] = work.Titles[0]
+	entry.Required["title"] = work.Title
 
 	if entry.Type == "inproceedings" {
-		entry.Required["booktitle"] = work.BookTitles[0]
+		entry.Required["booktitle"] = work.BookTitle
 	} else {
-		entry.Required["journaltitle"] = work.BookTitles[0]
+		entry.Required["journaltitle"] = work.BookTitle
 	}
 
 	entry.Optional["volume"] = work.Volume
 	entry.Optional["number"] = work.Issue
 	entry.Optional["doi"] = work.DOI
 
+	return entry
+}
+
+func commit(entry *scholar.Entry) {
 	key := entry.GetKey()
 	saveTo := filepath.Join(folder, key)
 
 	// TODO: check for unique key and directory names
 
-	err = os.MkdirAll(saveTo, os.ModePerm)
+	err := os.MkdirAll(saveTo, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
@@ -65,9 +71,38 @@ func AddDOI(doi string) {
 	yaml.Unmarshal(d, &en)
 	fmt.Println(en.Bib())
 	en.Check()
+
 }
 
-func Add(entryType string) {
+func attach(entry *scholar.Entry, file string) {
+	// horrible placeholder
+	key := entry.GetKey()
+	saveTo := filepath.Join(folder, key)
+
+	src, err := os.Open(file)
+	if err != nil {
+		panic(err)
+	}
+	defer src.Close()
+
+	path := filepath.Join(saveTo, fmt.Sprintf("%s%s", key, filepath.Ext(file)))
+
+	dst, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
+	defer dst.Close()
+
+	b, err := io.Copy(dst, src)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Copied", b, "bytes")
+	// horrible placeholder
+	entry.File = path
+}
+
+func add(entryType string) {
 
 	entry := scholar.NewEntry("none", entryType)
 
@@ -109,7 +144,7 @@ func Add(entryType string) {
 	en.Check()
 }
 
-func Export() {
+func export() {
 	dirs, err := ioutil.ReadDir(folder)
 	if err != nil {
 		panic(err)
@@ -134,6 +169,32 @@ func Export() {
 	}
 }
 
+func find(key string) *scholar.Entry {
+	dirs, err := ioutil.ReadDir(folder)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, dir := range dirs {
+		if dir.IsDir() && dir.Name() == strings.TrimSpace(key) {
+			d, err := ioutil.ReadFile(filepath.Join(folder, dir.Name(), "entry.yaml"))
+			if err != nil {
+				panic(err)
+			}
+
+			var e scholar.Entry
+			err = yaml.Unmarshal(d, &e)
+			if err != nil {
+				panic(err)
+			}
+
+			return &e
+		}
+	}
+
+	return &scholar.Entry{}
+}
+
 func main() {
 	fm, err := homedir.Expand(folder)
 	if err != nil {
@@ -145,6 +206,8 @@ func main() {
 	fPrintEntryLevel := flag.Int("level", 0, "Set the level of information to be shown")
 	fAdd := flag.String("add", "", "Add a new entry")
 	fExport := flag.Bool("export", false, "Export entries to biblatex")
+	fAttach := flag.String("attach", "", "Copy and attach a file to the entry")
+	fOpen := flag.String("open", "", "Open an entry (key)")
 
 	flag.Parse()
 
@@ -159,12 +222,25 @@ func main() {
 
 	if *fAdd != "" {
 		// Add(entries, *fAdd)
-		AddDOI("http://dx.doi.org/10.1016/0004-3702(89)90008-8")
-		AddDOI("http://dx.doi.org/10.1117/12.969296")
+		e := addDOI("http://dx.doi.org/10.1016/0004-3702(89)90008-8")
+
+		if *fAttach != "" {
+			attach(e, *fAttach)
+		}
+
+		commit(e)
+		commit(addDOI("http://dx.doi.org/10.1117/12.969296"))
 	}
 
 	if *fExport {
-		Export()
+		export()
+	}
+
+	if *fOpen != "" {
+		e := find(*fOpen)
+		if e.File != "" {
+			open.Start(e.File)
+		}
 	}
 
 }
