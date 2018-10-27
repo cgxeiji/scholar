@@ -2,38 +2,35 @@ package scholar
 
 import (
 	"fmt"
-	"io/ioutil"
 	"sort"
 	"strings"
 	"time"
-
-	yaml "gopkg.in/yaml.v2"
 )
 
-type EntryType struct {
+type entryType struct {
 	Type        string
 	Description string            `yaml:"desc"`
 	Required    map[string]string `yaml:"req"`
 	Optional    map[string]string `yaml:"opt"`
 }
 
-func (e *EntryType) Get() *Entry {
+func (e *entryType) get() *Entry {
 	var c Entry
 	c.Type = e.Type
 	c.Required = make(map[string]string)
-	for k, _ := range e.Required {
+	for k := range e.Required {
 		c.Required[k] = ""
 	}
 
 	c.Optional = make(map[string]string)
-	for k, _ := range e.Optional {
+	for k := range e.Optional {
 		c.Optional[k] = ""
 	}
 
 	return &c
 }
 
-func (e *EntryType) Show(level int) {
+func (e *entryType) Info(level int) {
 	fmt.Println(e.Type, ":", e.Description)
 
 	if level > 0 {
@@ -111,54 +108,4 @@ func (e *Entry) Bib() string {
 	}
 	bib = fmt.Sprintf("%s}", bib)
 	return bib
-}
-
-type Entries struct {
-	Map map[string]*EntryType
-}
-
-func (es *Entries) Parse(service, eType string) *Entry {
-	switch service {
-	case "crossref":
-		switch eType {
-		case "journal-article":
-			return es.Map["article"].Get()
-		case "proceedings-article":
-			return es.Map["inproceedings"].Get()
-		default:
-			return es.Map["article"].Get()
-		}
-	}
-
-	return &Entry{}
-}
-
-func (es *Entries) Load(file string) error {
-	d, err := ioutil.ReadFile(file)
-	if err != nil {
-		return err
-	}
-
-	err = yaml.Unmarshal(d, &es.Map)
-	if err != nil {
-		return err
-	}
-
-	for name, entry := range es.Map {
-		entry.Type = name
-	}
-
-	return nil
-}
-
-func (es *Entries) Show(level int) {
-	var eNames []string
-	for name := range es.Map {
-		eNames = append(eNames, name)
-	}
-	sort.Strings(eNames)
-	for _, name := range eNames {
-		es.Map[name].Show(level)
-		fmt.Println()
-	}
 }
