@@ -36,3 +36,23 @@ book:
         url: URL of the article.
         urldate: Access date in YYY-MM-DD format.
 
+inproceedings:
+    desc: An article in a conference proceedings.
+    req:
+        author: Author(s) of the article.
+        title: Title of the article.
+        booktitle: Title of the conference proceedings.
+        date: YYYY-MM-DD format.
+    opt:
+        editor: Editor(s) of the conference proceedings.
+        publisher: Publisher of the conference proceedings.
+        organization: Organization in charge of the conference proceedings.
+        language: Language of the article.
+        series: Series of the conference proceedings.
+        volume: Volume of the conference proceedings.
+        number: Number of the conference proceedings.
+        isbn: ISBN number of the article.
+        doi: DOI code of the article.
+        url: URL of the article.
+        urldate: Access date in YYY-MM-DD format.
+        
