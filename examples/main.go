@@ -12,7 +12,6 @@ import (
 
 	"github.com/cgxeiji/crossref"
 	"github.com/cgxeiji/scholar"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/skratchdot/open-golang/open"
 	"gopkg.in/yaml.v2"
 )
@@ -193,7 +192,7 @@ func find(key string) *scholar.Entry {
 func modeAdd() {
 	flags := flag.NewFlagSet("add", flag.ExitOnError)
 
-	fAttach := flags.String("a,attach", "", "Copy and attach a file to the entry")
+	fAttach := flags.String("attach", "", "Copy and attach a file to the entry")
 	fDOI := flags.String("doi", "", "Add metadata from DOI")
 	fType := flags.String("type", "article", "Specify the type of entry")
 	flags.Parse(os.Args[2:])
@@ -214,16 +213,8 @@ func modeAdd() {
 }
 
 func main() {
-	fm, err := homedir.Expand(folder)
-	if err != nil {
-		panic(err)
-	}
-	folder = fm
-
-	err = scholar.LoadTypes("types.yaml")
-	if err != nil {
-		panic(err)
-	}
+	config()
+	return
 
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
