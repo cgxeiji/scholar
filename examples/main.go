@@ -33,13 +33,21 @@ func addDOI(doi string) *scholar.Entry {
 		entry.Required["author"] = fmt.Sprintf("%s%s, %s and ", entry.Required["author"], a.Last, a.First)
 	}
 	entry.Required["author"] = strings.TrimSuffix(entry.Required["author"], " and ")
+
+	for _, a := range work.Editors {
+		entry.Optional["editor"] = fmt.Sprintf("%s%s, %s and ", entry.Optional["editor"], a.Last, a.First)
+	}
+	entry.Optional["editor"] = strings.TrimSuffix(entry.Optional["editor"], " and ")
 	entry.Required["date"] = work.Date
 	entry.Required["title"] = work.Title
 
 	if entry.Type == "inproceedings" {
 		entry.Required["booktitle"] = work.BookTitle
+		entry.Optional["isbn"] = work.ISBN
+		entry.Optional["publisher"] = work.Publisher
 	} else {
 		entry.Required["journaltitle"] = work.BookTitle
+		entry.Optional["issn"] = work.ISSN
 	}
 
 	entry.Optional["volume"] = work.Volume
@@ -64,14 +72,21 @@ func commit(entry *scholar.Entry) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(d))
-	ioutil.WriteFile(filepath.Join(saveTo, "entry.yaml"), d, 0644)
+
+	file := filepath.Join(saveTo, "entry.yaml")
+	ioutil.WriteFile(file, d, 0644)
+
+	open.Run(file)
+
+	d, err = ioutil.ReadFile(file)
+	if err != nil {
+		panic(err)
+	}
 
 	var en scholar.Entry
 	yaml.Unmarshal(d, &en)
 	fmt.Println(en.Bib())
 	en.Check()
-
 }
 
 func attach(entry *scholar.Entry, file string) {
@@ -102,7 +117,7 @@ func attach(entry *scholar.Entry, file string) {
 	entry.File = path
 }
 
-func add(entryType string) {
+func add(entryType string) *scholar.Entry {
 
 	entry := scholar.NewEntry("none", entryType)
 
@@ -121,27 +136,7 @@ func add(entryType string) {
 
 	// entry.Optional["editor"] = "Editing Company"
 
-	key := entry.GetKey()
-	saveTo := filepath.Join(folder, key)
-
-	// TODO: check for unique key and directory names
-
-	err := os.MkdirAll(saveTo, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-
-	d, err := yaml.Marshal(entry)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(d))
-	ioutil.WriteFile(filepath.Join(saveTo, "entry.yaml"), d, 0644)
-
-	var en scholar.Entry
-	yaml.Unmarshal(d, &en)
-	fmt.Println(en.Bib())
-	en.Check()
+	return entry
 }
 
 func export() {
@@ -195,12 +190,48 @@ func find(key string) *scholar.Entry {
 	return &scholar.Entry{}
 }
 
+func modeAdd() {
+	flags := flag.NewFlagSet("add", flag.ExitOnError)
+
+	fAttach := flags.String("a,attach", "", "Copy and attach a file to the entry")
+	fDOI := flags.String("doi", "", "Add metadata from DOI")
+	fType := flags.String("type", "article", "Specify the type of entry")
+	flags.Parse(os.Args[2:])
+
+	e := &scholar.Entry{}
+
+	if *fDOI != "" {
+		e = addDOI("http://dx.doi.org/10.1016/0004-3702(89)90008-8")
+	} else {
+		e = add(*fType)
+	}
+
+	if *fAttach != "" {
+		attach(e, *fAttach)
+	}
+
+	commit(e)
+}
+
 func main() {
 	fm, err := homedir.Expand(folder)
 	if err != nil {
 		panic(err)
 	}
 	folder = fm
+
+	err = scholar.LoadTypes("types.yaml")
+	if err != nil {
+		panic(err)
+	}
+
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "add":
+			modeAdd()
+			return
+		}
+	}
 
 	fPrintEntryTypes := flag.Bool("types", false, "Show available entry types")
 	fPrintEntryLevel := flag.Int("level", 0, "Set the level of information to be shown")
@@ -210,11 +241,6 @@ func main() {
 	fOpen := flag.String("open", "", "Open an entry (key)")
 
 	flag.Parse()
-
-	err = scholar.LoadTypes("types.yaml")
-	if err != nil {
-		panic(err)
-	}
 
 	if *fPrintEntryTypes {
 		scholar.TypesInfo(*fPrintEntryLevel)
