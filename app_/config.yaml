@@ -1,0 +1,11 @@
+# General Settings
+GENERAL:
+# Set the default library.
+# Scholar will retrieve and save entries from this library.
+    default: scholar
+
+# Path locations for the libraries.
+# You can add as many libraries as you want.
+# You can name the library however you want.
+LIBRARIES:
+    scholar: ~/ScholarLibrary

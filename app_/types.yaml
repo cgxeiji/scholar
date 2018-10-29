@@ -1,0 +1,58 @@
+article:
+    desc: An article in a journal, magazine, newspaper, or other periodical which forms a self-contained unit with its own title.
+    req:
+        author: Author(s) of the article.
+        title: Title of the article.
+        journaltitle: Title of the journal.
+        date: YYYY-MM-DD format.
+    opt:
+        editor: Editor(s) of the journal.
+        language: Language of the article.
+        series: Series of the journal.
+        volume: Volume of the journal.
+        number: Number of the journal.
+        issn: ISSN number of the article.
+        doi: DOI code of the article.
+        url: URL of the article.
+        urldate: Access date in YYY-MM-DD format.
+
+book:
+    desc: A single-volume book with one or more authors where the authors share credit for the work as a whole.
+    req:
+        author: Author(s) of the book.
+        title: Title of the book.
+        date: YYYY-MM-DD format.
+    opt:
+        editor: Editor(s) of the book.
+        publisher: Publisher of the book.
+        location: Location of the publishing company.
+        language: Language of the book.
+        series: Series of the book.
+        volume: Volume of the book.
+        number: Number of the book.
+        pages: Number of pages is the book.
+        isbn: ISBN number of the article.
+        doi: DOI code of the article.
+        url: URL of the article.
+        urldate: Access date in YYY-MM-DD format.
+
+inproceedings:
+    desc: An article in a conference proceedings.
+    req:
+        author: Author(s) of the article.
+        title: Title of the article.
+        booktitle: Title of the conference proceedings.
+        date: YYYY-MM-DD format.
+    opt:
+        editor: Editor(s) of the conference proceedings.
+        publisher: Publisher of the conference proceedings.
+        organization: Organization in charge of the conference proceedings.
+        language: Language of the article.
+        series: Series of the conference proceedings.
+        volume: Volume of the conference proceedings.
+        number: Number of the conference proceedings.
+        isbn: ISBN number of the article.
+        doi: DOI code of the article.
+        url: URL of the article.
+        urldate: Access date in YYY-MM-DD format.
+        

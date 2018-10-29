@@ -18,10 +18,43 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package main
+package cmd
 
-import "github.com/cgxeiji/scholar/app/cmd"
+import (
+	"fmt"
 
-func main() {
-	cmd.Execute()
+	"github.com/spf13/cobra"
+)
+
+// addCmd represents the add command
+var addCmd = &cobra.Command{
+	Use:   "add [FILENAME/QUERY]",
+	Short: "Adds a new entry",
+	Long: `Add a new entry to scholar.
+
+You can TODO`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("add called")
+		fmt.Printf("with %v arguments\n", args)
+	},
+}
+
+var addDoi, addAttach string
+
+func init() {
+	rootCmd.AddCommand(addCmd)
+
+	addCmd.Flags().StringVarP(&addDoi, "doi", "d", "", "Specify the DOI to retrieve metadata")
+	addCmd.Flags().StringVar(&curentLibrary, "to", "", "specify library to use")
+	addCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
