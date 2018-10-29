@@ -22,7 +22,9 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/cgxeiji/crossref"
 	"github.com/spf13/cobra"
 )
 
@@ -36,6 +38,7 @@ You can TODO`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("add called")
 		fmt.Printf("with %v arguments\n", args)
+		query(strings.Join(args, " "))
 	},
 }
 
@@ -57,4 +60,23 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func query(search string) {
+	fmt.Printf("Searching for: %s\n", search)
+
+	client := crossref.NewClient("Scholar", "mail@example.com")
+
+	ws, err := client.Query(search)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, v := range ws {
+		au := "Unknown"
+		if len(v.Authors) > 0 {
+			au = fmt.Sprintf("%s, %s", v.Authors[0].Last, v.Authors[0].First)
+		}
+		fmt.Printf("  > %-20.20s | %-10.10s | %4.4s | %20.20s\n", v.Title, au, v.Date, v.DOI)
+	}
 }
