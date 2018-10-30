@@ -26,7 +26,7 @@ func addDOI(doi string) *scholar.Entry {
 		panic(err)
 	}
 
-	entry := scholar.NewEntry("crossref", work.Type)
+	entry := scholar.NewEntry(work.Type)
 
 	for _, a := range work.Authors {
 		entry.Required["author"] = fmt.Sprintf("%s%s, %s and ", entry.Required["author"], a.Last, a.First)
@@ -118,7 +118,7 @@ func attach(entry *scholar.Entry, file string) {
 
 func add(entryType string) *scholar.Entry {
 
-	entry := scholar.NewEntry("none", entryType)
+	entry := scholar.NewEntry(entryType)
 
 	reader := bufio.NewReader(os.Stdin)
 	for field := range entry.Required {

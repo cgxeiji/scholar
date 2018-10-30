@@ -72,9 +72,13 @@ func init() {
 var configDefault = []byte(`
 # General Settings
 GENERAL:
-# Set the default library.
-# Scholar will retrieve and save entries from this library.
+    # Set the default library.
+    # Scholar will retrieve and save entries from this library.
     default: scholar
+    # Set the default text editor
+    editor: vi
+    # Set the email for polite use of CrossRef
+    mailto: mail@example.com
 
 # Path locations for the libraries.
 # You can add as many libraries as you want.

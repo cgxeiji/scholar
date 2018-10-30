@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-type entryType struct {
+type EntryType struct {
 	Type        string
 	Description string            `yaml:"desc"`
 	Required    map[string]string `yaml:"req"`
 	Optional    map[string]string `yaml:"opt"`
 }
 
-func (e *entryType) get() *Entry {
+func (e *EntryType) get() *Entry {
 	var c Entry
 	c.Type = e.Type
 	c.Required = make(map[string]string)
@@ -30,7 +30,7 @@ func (e *entryType) get() *Entry {
 	return &c
 }
 
-func (e *entryType) info(level int) {
+func (e *EntryType) info(level int) {
 	fmt.Println(e.Type, ":", e.Description)
 
 	if level > 0 {
@@ -85,7 +85,7 @@ func (e *Entry) Check() error {
 }
 
 func (e *Entry) Year() string {
-	return e.Required["date"][:4]
+	return fmt.Sprintf("%.4s", e.Required["date"])
 }
 
 func (e *Entry) FirstAuthorLast() string {
