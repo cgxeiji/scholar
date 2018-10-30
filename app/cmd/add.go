@@ -23,10 +23,12 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -56,6 +58,8 @@ You can TODO`,
 		if _, err := os.Stat(file); os.IsNotExist(err) {
 			if doi := query(search); doi != "" {
 				entry = addDOI(doi)
+				commit(entry)
+				edit(entry)
 			}
 		} else {
 			fmt.Println("file:", file)
@@ -84,11 +88,16 @@ You can TODO`,
 					entry = add(t)
 				}
 
+			} else {
+				fmt.Println("Getting metadata from doi")
+				entry = addDOI(doi)
 			}
 
+			commit(entry)
+			attach(entry, file)
 		}
 
-		commit(entry)
+		edit(entry)
 		pretty.Println(entry.Bib())
 
 	},
@@ -141,7 +150,6 @@ func requestSearch() string {
 }
 
 func commit(entry *scholar.Entry) {
-	fmt.Println("commiting")
 	key := entry.GetKey()
 	saveTo := filepath.Join(viper.GetString("deflib"), key)
 
@@ -163,18 +171,39 @@ func commit(entry *scholar.Entry) {
 
 	file := filepath.Join(saveTo, "entry.yaml")
 	ioutil.WriteFile(file, d, 0644)
+}
 
-	err = editor(file)
+func edit(entry *scholar.Entry) {
+	key := entry.GetKey()
+	saveTo := filepath.Join(viper.GetString("deflib"), key)
+
+	file := filepath.Join(saveTo, "entry.yaml")
+
+	err := editor(file)
 	if err != nil {
 		panic(err)
 	}
 
-	d, err = ioutil.ReadFile(file)
+	d, err := ioutil.ReadFile(file)
 	if err != nil {
 		panic(err)
 	}
 
 	yaml.Unmarshal(d, &entry)
+}
+
+func update(entry *scholar.Entry) {
+	key := entry.GetKey()
+	saveTo := filepath.Join(viper.GetString("deflib"), key)
+
+	file := filepath.Join(saveTo, "entry.yaml")
+
+	d, err := yaml.Marshal(entry)
+	if err != nil {
+		panic(err)
+	}
+
+	ioutil.WriteFile(file, d, 0644)
 }
 
 func editor(file string) error {
@@ -195,6 +224,22 @@ func editor(file string) error {
 	c.Stderr = os.Stderr
 
 	return c.Run()
+}
+
+func open(file string) error {
+	var cmd string
+	var args []string
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	default:
+		cmd = "xdg-open"
+	}
+	args = append(args, file)
+
+	return exec.Command(cmd, args...).Start()
 }
 
 func query(search string) string {
@@ -356,4 +401,47 @@ func add(entryType string) *scholar.Entry {
 	}
 
 	return entry
+}
+
+func clean(filename string) string {
+	rx, err := regexp.Compile("[^[:alnum:][:space:]]+")
+	if err != nil {
+		return filename
+	}
+
+	filename = rx.ReplaceAllString(filename, " ")
+	filename = strings.Replace(filename, " ", "_", -1)
+
+	return strings.ToLower(filename)
+}
+
+func attach(entry *scholar.Entry, file string) {
+	key := entry.GetKey()
+	saveTo := filepath.Join(viper.GetString("deflib"), key)
+
+	src, err := os.Open(file)
+	if err != nil {
+		panic(err)
+	}
+	defer src.Close()
+
+	filename := fmt.Sprintf("%s_%.40s%s", key, clean(entry.Required["title"]), filepath.Ext(file))
+
+	path := filepath.Join(saveTo, filename)
+
+	dst, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
+	defer dst.Close()
+
+	b, err := io.Copy(dst, src)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Copied", b, "bytes to", path)
+	// horrible placeholder
+	entry.File = path
+
+	update(entry)
 }

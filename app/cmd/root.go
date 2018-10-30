@@ -118,9 +118,6 @@ func initConfig() {
 
 	viper.Set("deflib", dlex)
 
-	// TODO: delete this
-	fmt.Println(viper.GetString("deflib"))
-
 	et := viper.New()
 	et.SetConfigName("types")
 	et.SetConfigType("yaml")
@@ -134,8 +131,6 @@ func initConfig() {
 		panic("no types.yaml found")
 	}
 
-	// TODO: delete this
-	fmt.Println(et.ConfigFileUsed())
 	err = scholar.LoadTypes(et.ConfigFileUsed())
 	if err != nil {
 		panic(err)
