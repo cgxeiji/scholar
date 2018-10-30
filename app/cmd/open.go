@@ -113,7 +113,7 @@ func findQuery(search string) *scholar.Entry {
 		Label:    "{{ . }}",
 		Active:   `> {{ index .Required "title" | cyan | bold | underline }} ({{ index .Required "date" | yellow | bold | underline }}) {{ index .Required "author" | red | bold | underline }}`,
 		Inactive: `  {{ index .Required "title" | cyan }} ({{ index .Required "date" | yellow }}) {{ index .Required "author" | red }}`,
-		Selected: `Entry type: {{ index .Required "title" | cyan | bold }}`,
+		Selected: `Entry selected: {{ index .Required "title" | cyan | bold }}`,
 		Details: `
 ------------------------- Details -------------------------
 {{ "Title:" | faint }}	{{ index .Required "title" | cyan | bold}}
@@ -133,7 +133,7 @@ func findQuery(search string) *scholar.Entry {
 	}
 
 	prompt := promptui.Select{
-		Label:             "-------------------------- Types --------------------------",
+		Label:             "-------------------------- Entries --------------------------",
 		Items:             entries,
 		Templates:         template,
 		Size:              5,
