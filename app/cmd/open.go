@@ -15,14 +15,11 @@
 package cmd
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/cgxeiji/scholar"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
@@ -30,17 +27,28 @@ import (
 
 // openCmd represents the open command
 var openCmd = &cobra.Command{
-	Use:   "open",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "open [KEY]",
+	Short: "Opens an entry",
+	Long: `Scholar: a CLI Reference Manager
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Open an entry's attached file with the default system's software.
+
+To search for an entry run:
+
+	scholar open
+
+to specify which entry to open run:
+
+	scholar open KEY
+
+--------------------------------------------------------------------------------
+TODO: if there are multiple files attached, a selection menu appears.
+TODO: if there is no file attached, the entry's metadata file is opened.
+--------------------------------------------------------------------------------
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Make a entry search menu
-		open(findQuery("").File)
+		open(entryQuery("").File)
 	},
 }
 
@@ -58,7 +66,7 @@ func init() {
 	// openCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func findFromKey(key string) *scholar.Entry {
+func entryFromKey(key string) *scholar.Entry {
 	dirs, err := ioutil.ReadDir(viper.GetString("deflib"))
 	if err != nil {
 		panic(err)
@@ -82,72 +90,4 @@ func findFromKey(key string) *scholar.Entry {
 	}
 
 	return &scholar.Entry{}
-}
-
-func findQuery(search string) *scholar.Entry {
-	dirs, err := ioutil.ReadDir(viper.GetString("deflib"))
-	if err != nil {
-		panic(err)
-	}
-
-	var entries []*scholar.Entry
-
-	for _, dir := range dirs {
-		if dir.IsDir() {
-			d, err := ioutil.ReadFile(filepath.Join(viper.GetString("deflib"), dir.Name(), "entry.yaml"))
-			if err != nil {
-				panic(err)
-			}
-
-			var e scholar.Entry
-			err = yaml.Unmarshal(d, &e)
-			if err != nil {
-				panic(err)
-			}
-
-			entries = append(entries, &e)
-		}
-	}
-
-	template := &promptui.SelectTemplates{
-		Label:    "{{ . }}",
-		Active:   `> {{ index .Required "title" | cyan | bold | underline }} ({{ index .Required "date" | yellow | bold | underline }}) {{ index .Required "author" | red | bold | underline }}`,
-		Inactive: `  {{ index .Required "title" | cyan }} ({{ index .Required "date" | yellow }}) {{ index .Required "author" | red }}`,
-		Selected: `Entry selected: {{ index .Required "title" | cyan | bold }}`,
-		Details: `
-------------------------- Details -------------------------
-{{ "Title:" | faint }}	{{ index .Required "title" | cyan | bold}}
-{{ "Author(s):" | faint }}	{{ index .Required "author" | red | bold}}
-{{ "Date:" | faint }}	{{ index .Required "date" | yellow | bold}}`,
-	}
-
-	searcher := func(input string, index int) bool {
-		entry := entries[index]
-		title := strings.Replace(strings.ToLower(entry.Required["title"]), " ", "", -1)
-		aus := strings.Replace(strings.ToLower(entry.Required["author"]), " ", "", -1)
-		file := strings.Replace(strings.ToLower(filepath.Base(entry.File)), "_", "", -1)
-		s := fmt.Sprintf("%s%s%s", title, aus, file)
-		input = strings.Replace(strings.ToLower(input), " ", "", -1)
-
-		return strings.Contains(s, input)
-	}
-
-	prompt := promptui.Select{
-		Label:             "-------------------------- Entries --------------------------",
-		Items:             entries,
-		Templates:         template,
-		Size:              5,
-		Searcher:          searcher,
-		StartInSearchMode: true,
-	}
-
-	i, _, err := prompt.Run()
-
-	if err != nil {
-		fmt.Println("Aborting")
-		os.Exit(1)
-	}
-
-	return entries[i]
-
 }

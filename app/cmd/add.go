@@ -26,10 +26,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
-	"runtime"
 	"sort"
 	"strings"
 
@@ -56,7 +53,24 @@ You can TODO`,
 		search := strings.Join(args, " ")
 		file, _ := homedir.Expand(search)
 		if _, err := os.Stat(file); os.IsNotExist(err) {
-			if doi := query(search); doi != "" {
+			if search == "" {
+				doi := addDoi
+				if !requestManual("Would you like to search the web for metadata?") {
+					doi = query(requestSearch())
+				}
+				if doi != "" {
+					fmt.Println("Getting metadata from doi")
+					entry = addDOI(doi)
+				} else {
+					fmt.Println()
+					fmt.Println("Adding the entry manually...")
+					fmt.Println("What kind of entry is it?")
+					t := selectType()
+					fmt.Println()
+					fmt.Println("Please, add the required fields:")
+					entry = add(t)
+				}
+			} else if doi := query(search); doi != "" {
 				entry = addDOI(doi)
 				commit(entry)
 				edit(entry)
@@ -72,7 +86,7 @@ You can TODO`,
 
 			if doi == "" {
 				fmt.Println()
-				if !requestManual() {
+				if !requestManual("I could not find anything, can you give me a better search variable?") {
 					doi = query(requestSearch())
 				}
 				if doi != "" {
@@ -123,9 +137,9 @@ func init() {
 	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func requestManual() bool {
+func requestManual(question string) bool {
 	prompt := promptui.Prompt{
-		Label:     "I could not find anything, can you give me a better search variable?",
+		Label:     question,
 		IsConfirm: true,
 	}
 
@@ -171,75 +185,6 @@ func commit(entry *scholar.Entry) {
 
 	file := filepath.Join(saveTo, "entry.yaml")
 	ioutil.WriteFile(file, d, 0644)
-}
-
-func edit(entry *scholar.Entry) {
-	key := entry.GetKey()
-	saveTo := filepath.Join(viper.GetString("deflib"), key)
-
-	file := filepath.Join(saveTo, "entry.yaml")
-
-	err := editor(file)
-	if err != nil {
-		panic(err)
-	}
-
-	d, err := ioutil.ReadFile(file)
-	if err != nil {
-		panic(err)
-	}
-
-	yaml.Unmarshal(d, &entry)
-}
-
-func update(entry *scholar.Entry) {
-	key := entry.GetKey()
-	saveTo := filepath.Join(viper.GetString("deflib"), key)
-
-	file := filepath.Join(saveTo, "entry.yaml")
-
-	d, err := yaml.Marshal(entry)
-	if err != nil {
-		panic(err)
-	}
-
-	ioutil.WriteFile(file, d, 0644)
-}
-
-func editor(file string) error {
-	var cmd string
-	var args []string
-
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
-	default:
-		cmd = viper.GetString("GENERAL.editor")
-	}
-	args = append(args, file)
-	c := exec.Command(cmd, args...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-
-	return c.Run()
-}
-
-func open(file string) error {
-	var cmd string
-	var args []string
-
-	switch runtime.GOOS {
-	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
-	default:
-		cmd = "xdg-open"
-	}
-	args = append(args, file)
-
-	return exec.Command(cmd, args...).Start()
 }
 
 func query(search string) string {
@@ -401,18 +346,6 @@ func add(entryType string) *scholar.Entry {
 	}
 
 	return entry
-}
-
-func clean(filename string) string {
-	rx, err := regexp.Compile("[^[:alnum:][:space:]]+")
-	if err != nil {
-		return filename
-	}
-
-	filename = rx.ReplaceAllString(filename, " ")
-	filename = strings.Replace(filename, " ", "_", -1)
-
-	return strings.ToLower(filename)
 }
 
 func attach(entry *scholar.Entry, file string) {

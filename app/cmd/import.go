@@ -15,38 +15,36 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
-// editCmd represents the edit command
-var editCmd = &cobra.Command{
-	Use:   "edit",
-	Short: "Edits an entry",
-	Long: `Scholar: a CLI Reference Manager
+// importCmd represents the import command
+var importCmd = &cobra.Command{
+	Use:   "import",
+	Short: "A brief description of your command",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
 
-Edit an entry's metadata using the default's text editor.
-
---------------------------------------------------------------------------------
-TODO:
---------------------------------------------------------------------------------
-`,
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		entry := entryQuery("")
-		edit(entry)
-		update(entry)
+		fmt.Println("import called")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(editCmd)
+	rootCmd.AddCommand(importCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// editCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// importCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// editCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// importCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
