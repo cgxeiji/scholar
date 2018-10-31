@@ -32,7 +32,6 @@ import (
 
 	"github.com/cgxeiji/crossref"
 	"github.com/cgxeiji/scholar"
-	"github.com/kr/pretty"
 	"github.com/manifoldco/promptui"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -111,9 +110,8 @@ You can TODO`,
 			attach(entry, file)
 		}
 
-		edit(entry)
-		pretty.Println(entry.Bib())
-
+		fmt.Println()
+		fmt.Println(entry.Bib())
 	},
 }
 
