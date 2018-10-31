@@ -25,15 +25,57 @@ book:
     opt:
         editor: Editor(s) of the book.
         publisher: Publisher of the book.
+        location: Location of the publisher.
+        language: Language of the book.
+        series: Series of the book.
+        volume: Volume of the book.
+        number: Number of the book.
+        pages: Number of pages is the book.
+        isbn: ISBN number of the book.
+        doi: DOI code of the book.
+        url: URL of the book.
+        urldate: Access date in YYY-MM-DD format.
+
+mvbook:
+    desc: A multi-volume @book.
+    req:
+        author: Author(s) of the book.
+        title: Title of the book.
+        date: YYYY-MM-DD format.
+    opt:
+        editor: Editor(s) of the book.
+        publisher: Publisher of the book.
         location: Location of the publishing company.
         language: Language of the book.
         series: Series of the book.
         volume: Volume of the book.
         number: Number of the book.
         pages: Number of pages is the book.
-        isbn: ISBN number of the article.
-        doi: DOI code of the article.
-        url: URL of the article.
+        isbn: ISBN number of the book.
+        doi: DOI code of the book.
+        url: URL of the book.
+        urldate: Access date in YYY-MM-DD format.
+
+inbook:
+    desc: A part of a book which forms a self-contained unit with its own title.
+    req:
+        author: Author(s) of the book section.
+        title: Title of the book section.
+        booktitle: Title of the book.
+        date: YYYY-MM-DD format.
+    opt:
+        bookauthor: Author(s) of the book.
+        editor: Editor(s) of the book.
+        publisher: Publisher of the book.
+        location: Location of the publisher.
+        language: Language of the book.
+        series: Series of the book.
+        volume: Volume of the book.
+        number: Number of the book.
+        pages: Number of pages is the book.
+        isbn: ISBN number of the book.
+        doi: DOI code of the book.
+        url: URL of the book.
         urldate: Access date in YYY-MM-DD format.
 
 inproceedings:
