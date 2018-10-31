@@ -44,6 +44,9 @@ your documents metadata using YAML files with biblatex format.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(os.Args[1:]) == 0 {
+			cmd.Help()
+		}
 		return
 	},
 }
@@ -65,10 +68,6 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&confFile, "config", "", "config file (default $HOME/.config/scholar/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&typesFile, "types", "", "entry types file (default $HOME/.config/scholar/types.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 var configDefault = []byte(`
