@@ -111,6 +111,6 @@ func (e *Entry) Bib() string {
 			bib = fmt.Sprintf("%s  %s = {%s},\n", bib, field, value)
 		}
 	}
-	bib = fmt.Sprintf("%s}", bib)
+	bib = fmt.Sprintf("%s\n}", bib[:len(bib)-2])
 	return bib
 }
