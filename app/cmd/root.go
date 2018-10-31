@@ -37,13 +37,15 @@ var confFile, typesFile, curentLibrary string
 var rootCmd = &cobra.Command{
 	Use:   "scholar",
 	Short: "A CLI Reference Manager",
-	Long: `Scholar, a CLI Reference Manager
+	Long: `Scholar: a CLI Reference Manager
 
 Scholar is a CLI reference manager that keeps track of
-your documents based on biblatex.`,
+your documents metadata using YAML files with biblatex format.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		return
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -89,7 +91,7 @@ LIBRARIES:
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if confFile != "" {
+	if confFile != "" && confFile != "which" {
 		// Use config file from the flag.
 		viper.SetConfigFile(confFile)
 	} else {
@@ -108,6 +110,10 @@ func initConfig() {
 		viper.ReadConfig(bytes.NewBuffer(configDefault))
 	}
 
+	if confFile == "which" {
+		fmt.Println("Configuration file used:", viper.ConfigFileUsed())
+	}
+
 	dl := viper.Sub("LIBRARIES").GetString(
 		viper.GetString("GENERAL.default"))
 
@@ -119,16 +125,25 @@ func initConfig() {
 	viper.Set("deflib", dlex)
 
 	et := viper.New()
-	et.SetConfigName("types")
-	et.SetConfigType("yaml")
-	et.AddConfigPath(".")
-	et.AddConfigPath("$HOME/.config/scholar")
+	if typesFile != "" && typesFile != "which" {
+		// Use config file from the flag.
+		et.SetConfigFile(typesFile)
+	} else {
+		et.SetConfigName("types")
+		et.SetConfigType("yaml")
+		et.AddConfigPath(".")
+		et.AddConfigPath("$HOME/.config/scholar")
+	}
 
 	err = et.ReadInConfig()
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("Please, set an entry types file at any of those locations.")
 		panic("no types.yaml found")
+	}
+
+	if typesFile == "which" {
+		fmt.Println("Types file used:", et.ConfigFileUsed())
 	}
 
 	err = scholar.LoadTypes(et.ConfigFileUsed())
