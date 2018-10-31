@@ -72,7 +72,7 @@ inbook:
         series: Series of the book.
         volume: Volume of the book.
         number: Number of the book.
-        pages: Number of pages is the book.
+        pages: Range of pages in the book.
         isbn: ISBN number of the book.
         doi: DOI code of the book.
         url: URL of the book.
@@ -93,6 +93,7 @@ inproceedings:
         series: Series of the conference proceedings.
         volume: Volume of the conference proceedings.
         number: Number of the conference proceedings.
+        pages: Range of pages in the conference proceedings.
         isbn: ISBN number of the article.
         doi: DOI code of the article.
         url: URL of the article.
