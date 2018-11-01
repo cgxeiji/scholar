@@ -91,7 +91,7 @@ func configure() {
 
 		path, _ := homedir.Dir()
 		path = filepath.Join(path, ".config", "scholar", "config.yaml")
-		if err := ioutil.WriteFile(path, configDefault, 0644); err != nil {
+		if err := ioutil.WriteFile(path, configTemplate, 0644); err != nil {
 			panic(nil)
 		}
 

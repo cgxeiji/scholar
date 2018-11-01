@@ -21,9 +21,10 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/cgxeiji/scholar"
 	homedir "github.com/mitchellh/go-homedir"
@@ -66,27 +67,10 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.PersistentFlags().StringVar(&confFile, "config", "", "config file (default $HOME/.config/scholar/config.yaml)")
-	rootCmd.PersistentFlags().StringVar(&typesFile, "types", "", "entry types file (default $HOME/.config/scholar/types.yaml)")
+	//rootCmd.PersistentFlags().StringVar(&confFile, "config", "", "config file (default $HOME/.config/scholar/config.yaml)")
+	//rootCmd.PersistentFlags().StringVar(&typesFile, "types", "", "entry types file (default $HOME/.config/scholar/types.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&currentLibrary, "library", "l", "", "specify the library")
 }
-
-var configDefault = []byte(`
-# General Settings
-GENERAL:
-    # Set the default library.
-    # Scholar will retrieve and save entries from this library.
-    default: scholar
-    # Set the default text editor
-    editor: vi
-    # Set the email for polite use of CrossRef
-    mailto: mail@example.com
-
-# Path locations for the libraries.
-# You can add as many libraries as you want.
-# You can name the library however you want.
-LIBRARIES:
-    scholar: ~/ScholarLibrary
-`)
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
@@ -102,11 +86,25 @@ func initConfig() {
 
 	viper.AutomaticEnv() // read in environment variables that match
 
-	// If a config file is found, read it in.
+	// Load the configuration file. If not found, auto-generate one.
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Println(err)
-		fmt.Println("Using default values")
-		viper.ReadConfig(bytes.NewBuffer(configDefault))
+		fmt.Println("Setting up a new configuration file")
+
+		path, _ := homedir.Dir()
+		path = filepath.Join(path, ".config", "scholar")
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			panic(err)
+		}
+
+		path = filepath.Join(path, "config.yaml")
+		if err := ioutil.WriteFile(path, configTemplate, 0644); err != nil {
+			panic(err)
+		}
+
+		if err := viper.ReadInConfig(); err != nil {
+			panic(err)
+		}
 	}
 
 	if confFile == "which" {
@@ -142,11 +140,25 @@ func initConfig() {
 		et.AddConfigPath("$HOME/.config/scholar")
 	}
 
-	err = et.ReadInConfig()
-	if err != nil {
+	// Load the configuration file. If not found, auto-generate one.
+	if err := et.ReadInConfig(); err != nil {
 		fmt.Println(err)
-		fmt.Println("Please, set an entry types file at any of those locations.")
-		panic("no types.yaml found")
+		fmt.Println("Setting up a new types file")
+
+		path, _ := homedir.Dir()
+		path = filepath.Join(path, ".config", "scholar")
+		if err := os.MkdirAll(path, os.ModePerm); err != nil {
+			panic(err)
+		}
+
+		path = filepath.Join(path, "types.yaml")
+		if err := ioutil.WriteFile(path, typesTemplate, 0644); err != nil {
+			panic(err)
+		}
+
+		if err := et.ReadInConfig(); err != nil {
+			panic(err)
+		}
 	}
 
 	if typesFile == "which" {

@@ -18,7 +18,7 @@ import (
 
 func edit(entry *scholar.Entry) {
 	key := entry.GetKey()
-	saveTo := filepath.Join(viper.GetString("deflib"), key)
+	saveTo := filepath.Join(libraryPath(), key)
 
 	file := filepath.Join(saveTo, "entry.yaml")
 
@@ -37,7 +37,7 @@ func edit(entry *scholar.Entry) {
 
 func update(entry *scholar.Entry) {
 	key := entry.GetKey()
-	saveTo := filepath.Join(viper.GetString("deflib"), key)
+	saveTo := filepath.Join(libraryPath(), key)
 
 	file := filepath.Join(saveTo, "entry.yaml")
 
@@ -97,8 +97,25 @@ func clean(filename string) string {
 	return strings.ToLower(filename)
 }
 
+func libraryPath() string {
+	if currentLibrary != "" {
+		if !viper.Sub("LIBRARIES").IsSet(currentLibrary) {
+			fmt.Println("No library called", currentLibrary, "was found!")
+			fmt.Println("Available libraries:")
+			for k, v := range viper.GetStringMapString("LIBRARIES") {
+				fmt.Println(" ", k)
+				fmt.Println("   ", v)
+			}
+			os.Exit(1)
+		}
+
+		return viper.Sub("LIBRARIES").GetString(currentLibrary)
+	}
+	return viper.Sub("LIBRARIES").GetString(viper.GetString("GENERAL.default"))
+}
+
 func entryQuery(search string) *scholar.Entry {
-	dirs, err := ioutil.ReadDir(viper.GetString("deflib"))
+	dirs, err := ioutil.ReadDir(libraryPath())
 	if err != nil {
 		panic(err)
 	}
@@ -107,7 +124,7 @@ func entryQuery(search string) *scholar.Entry {
 
 	for _, dir := range dirs {
 		if dir.IsDir() {
-			d, err := ioutil.ReadFile(filepath.Join(viper.GetString("deflib"), dir.Name(), "entry.yaml"))
+			d, err := ioutil.ReadFile(filepath.Join(libraryPath(), dir.Name(), "entry.yaml"))
 			if err != nil {
 				panic(err)
 			}

@@ -48,7 +48,6 @@ Import a bibtex/biblatex file into a library in Scholar.
 func init() {
 	rootCmd.AddCommand(importCmd)
 
-	importCmd.Flags().StringVarP(&currentLibrary, "to", "t", "", "Specify which library to import to")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

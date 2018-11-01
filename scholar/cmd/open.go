@@ -21,7 +21,6 @@ import (
 
 	"github.com/cgxeiji/scholar"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -67,14 +66,14 @@ func init() {
 }
 
 func entryFromKey(key string) *scholar.Entry {
-	dirs, err := ioutil.ReadDir(viper.GetString("deflib"))
+	dirs, err := ioutil.ReadDir(libraryPath())
 	if err != nil {
 		panic(err)
 	}
 
 	for _, dir := range dirs {
 		if dir.IsDir() && dir.Name() == strings.TrimSpace(key) {
-			d, err := ioutil.ReadFile(filepath.Join(viper.GetString("deflib"), dir.Name(), "entry.yaml"))
+			d, err := ioutil.ReadFile(filepath.Join(libraryPath(), dir.Name(), "entry.yaml"))
 			if err != nil {
 				panic(err)
 			}

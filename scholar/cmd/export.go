@@ -56,8 +56,6 @@ TODO: add flag to specify which library to export
 func init() {
 	rootCmd.AddCommand(exportCmd)
 
-	exportCmd.Flags().StringVarP(&currentLibrary, "from", "f", "", "Specify which library to export")
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -70,7 +68,7 @@ func init() {
 }
 
 func export() {
-	path := viper.GetString("deflib")
+	path := libraryPath()
 	if currentLibrary != "" {
 		path = viper.Sub("LIBRARIES").GetString(currentLibrary)
 	}

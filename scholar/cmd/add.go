@@ -121,7 +121,6 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 
 	addCmd.Flags().StringVarP(&addDoi, "doi", "d", "", "Specify the DOI to retrieve metadata")
-	addCmd.Flags().StringVar(&currentLibrary, "to", "", "Specify which library to add")
 	addCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
 
 	// Here you will define your flags and configuration settings.
