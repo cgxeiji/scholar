@@ -121,7 +121,7 @@ func (e *Entry) Bib() string {
 	}
 	sort.Strings(fields)
 	for _, field := range fields {
-		if value != "" {
+		if value := e.Required[field]; value != "" {
 			bib = fmt.Sprintf("%s  %s = {%s},\n", bib, field, value)
 		}
 	}
@@ -132,9 +132,12 @@ func (e *Entry) Bib() string {
 	}
 	sort.Strings(fields)
 	for _, field := range fields {
-		if value != "" {
+		if value := e.Optional[field]; value != "" && field != "abstract" {
 			bib = fmt.Sprintf("%s  %s = {%s},\n", bib, field, value)
 		}
+	}
+	if value, ok := e.Optional["abstract"]; ok {
+		bib = fmt.Sprintf("%s  %s = {%s},\n", bib, "abstract", value)
 	}
 
 	bib = fmt.Sprintf("%s\n}", bib[:len(bib)-2])
