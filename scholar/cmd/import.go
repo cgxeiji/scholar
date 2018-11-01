@@ -21,24 +21,23 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/cgxeiji/bib"
 	"github.com/cgxeiji/scholar"
-	"github.com/kr/pretty"
 	"github.com/spf13/cobra"
 )
 
 // importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:   "import",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Imports a bibtex/biblatex file",
+	Long: `Scholar: a CLI Reference Manager
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Import a bibtex/biblatex file into a library in Scholar.
+
+	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {
 			importParse(args[0])
@@ -49,6 +48,7 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(importCmd)
 
+	importCmd.Flags().StringVarP(&currentLibrary, "to", "t", "", "Specify which library to import to")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -80,6 +80,11 @@ func importParse(filename string) {
 		e.Key = entry["key"]
 		delete(entry, "key")
 
+		if file, ok := entry["file"]; ok {
+			e.File = file
+			delete(entry, "file")
+		}
+
 		for req := range e.Required {
 			e.Required[req] = entry[req]
 			delete(entry, req)
@@ -93,5 +98,10 @@ func importParse(filename string) {
 		es = append(es, e)
 	}
 
-	pretty.Println(es)
+	// Make sure all entries are correctly parsed before commiting
+	for _, e := range es {
+		commit(e)
+	}
+
+	fmt.Println("Import from", filename, "successful!")
 }

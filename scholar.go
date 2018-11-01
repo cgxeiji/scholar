@@ -50,7 +50,12 @@ func TypesInfo(level int) {
 // NewEntry returns an empty copy of an entry according to the types of entries
 // loaded.
 func NewEntry(label string) *Entry {
-	return EntryTypes[label].get()
+	if entryType, ok := EntryTypes[label]; ok {
+		// Return the entry type only if it exists
+		return entryType.get()
+	}
+	// Otherwise, default to misc type
+	return EntryTypes["misc"].get()
 }
 
 // Parse parses the information for a work to an entry.

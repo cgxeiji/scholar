@@ -121,7 +121,7 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 
 	addCmd.Flags().StringVarP(&addDoi, "doi", "d", "", "Specify the DOI to retrieve metadata")
-	addCmd.Flags().StringVar(&curentLibrary, "to", "", "specify library to use")
+	addCmd.Flags().StringVar(&currentLibrary, "to", "", "Specify which library to add")
 	addCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
 
 	// Here you will define your flags and configuration settings.
@@ -164,6 +164,9 @@ func requestSearch() string {
 func commit(entry *scholar.Entry) {
 	key := entry.GetKey()
 	saveTo := filepath.Join(viper.GetString("deflib"), key)
+	if currentLibrary != "" {
+		saveTo := filepath.Join(viper.GetSub("LIBRARIES").GetString(currentLibrary), key)
+	}
 
 	if _, err := os.Stat(saveTo); !os.IsNotExist(err) {
 		//TODO: make a better algorithm for unique keys

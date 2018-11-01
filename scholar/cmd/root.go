@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var confFile, typesFile, curentLibrary string
+var confFile, typesFile, currentLibrary string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
