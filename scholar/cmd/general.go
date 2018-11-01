@@ -325,7 +325,7 @@ func layout(g *gocui.Gui) error {
 		})
 	}
 
-	if v, err := g.SetView("main", 0, 3, 69, maxY-1); err != nil {
+	if v, err := g.SetView("main", 0, 3, maxX/5*3, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -337,7 +337,7 @@ func layout(g *gocui.Gui) error {
 
 		for _, e := range entries {
 			showList = append(showList, e)
-			fmt.Fprint(v, formatEntry(e))
+			fmt.Fprint(v, formatEntry(e, maxX/5*3))
 		}
 
 		if _, err := g.SetCurrentView("main"); err != nil {
@@ -374,7 +374,7 @@ func layout(g *gocui.Gui) error {
 		})
 	}
 
-	if v, err := g.SetView("detail", 70, 3, maxX-1, maxY-1); err != nil {
+	if v, err := g.SetView("detail", maxX/5*3+1, 3, maxX-1, maxY-1); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -400,17 +400,19 @@ func guiSearch(vsearch *gocui.View, vmain *gocui.View, entries []*scholar.Entry,
 		}
 	}
 
+	maxX, _ := vmain.Size()
+
 	for _, e := range showList {
-		fmt.Fprint(vmain, formatEntry(e))
+		fmt.Fprint(vmain, formatEntry(e, maxX))
 	}
 
 }
 
-func formatEntry(entry *scholar.Entry) string {
-	return fmt.Sprintf("\033[32;1m%-40.40s  \033[33;1m(%-4.4s)  \033[31;1m%-20.20s\033[0m\n",
-		entry.Required["title"],
+func formatEntry(entry *scholar.Entry, width int) string {
+	return fmt.Sprintf("\033[32;1m%-*.*s  \033[33;1m(%-4.4s)  \033[31;1m%-*.*s\033[0m\n",
+		width/3*2-4, width/3*2-4, entry.Required["title"],
 		entry.Required["date"],
-		entry.Required["author"])
+		width/3, width/3, entry.Required["author"])
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
