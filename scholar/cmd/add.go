@@ -165,7 +165,7 @@ func commit(entry *scholar.Entry) {
 	key := entry.GetKey()
 	saveTo := filepath.Join(viper.GetString("deflib"), key)
 	if currentLibrary != "" {
-		saveTo := filepath.Join(viper.GetSub("LIBRARIES").GetString(currentLibrary), key)
+		saveTo = filepath.Join(viper.Sub("LIBRARIES").GetString(currentLibrary), key)
 	}
 
 	if _, err := os.Stat(saveTo); !os.IsNotExist(err) {
@@ -186,6 +186,7 @@ func commit(entry *scholar.Entry) {
 
 	file := filepath.Join(saveTo, "entry.yaml")
 	ioutil.WriteFile(file, d, 0644)
+	fmt.Println("  ..", file)
 }
 
 func query(search string) string {

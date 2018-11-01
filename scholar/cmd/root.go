@@ -123,6 +123,14 @@ func initConfig() {
 
 	viper.Set("deflib", dlex)
 
+	for k, v := range viper.GetStringMapString("LIBRARIES") {
+		vex, err := homedir.Expand(v)
+		if err != nil {
+			panic(err)
+		}
+		viper.Set("LIBRARIES."+k, vex)
+	}
+
 	et := viper.New()
 	if typesFile != "" && typesFile != "which" {
 		// Use config file from the flag.

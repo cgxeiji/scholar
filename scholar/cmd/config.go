@@ -25,75 +25,80 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/cgxeiji/scholar"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
 )
 
-// exportCmd represents the export command
-var exportCmd = &cobra.Command{
-	Use:   "export",
-	Short: "Exports entries",
+// configCmd represents the config command
+var configCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Configures Scholar",
 	Long: `Scholar: a CLI Reference Manager
 
-Print all entries to stdout using biblatex format.
+Configure and modify the settings of Scholar.
 
-To save to a file run:
+Scholar will search for a configuration file
+in the current directory, or at the default
+location.
 
-	scholar export > references.bib
+If there is no configuration file available,
+of if it is the first time running this command,
+a configuration file will be created at:
+	
+	$HOME/.config/scholar/config.yaml
 
 --------------------------------------------------------------------------------
-TODO: add different export formats
-TODO: add flag to specify which library to export
+TODO: add option to create a local configuration
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		export()
+		configure()
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(exportCmd)
-
-	exportCmd.Flags().StringVarP(&currentLibrary, "from", "f", "", "Specify which library to export")
+	rootCmd.AddCommand(configCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// exportCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// configCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// exportCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// configCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func export() {
-	path := viper.GetString("deflib")
-	if currentLibrary != "" {
-		path = viper.Sub("LIBRARIES").GetString(currentLibrary)
-	}
-	dirs, err := ioutil.ReadDir(path)
-	if err != nil {
-		panic(err)
-	}
+func configure() {
+	//if confFile != "" && confFile != "which" {
+	// Use config file from the flag.
+	//viper.SetConfigFile(confFile)
+	//} else {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME/.config/scholar")
+	//}
 
-	for _, dir := range dirs {
-		if dir.IsDir() {
-			d, err := ioutil.ReadFile(filepath.Join(path, dir.Name(), "entry.yaml"))
-			if err != nil {
-				panic(err)
-			}
+	viper.AutomaticEnv() // read in environment variables that match
 
-			var e scholar.Entry
-			err = yaml.Unmarshal(d, &e)
-			if err != nil {
-				panic(err)
-			}
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println(err)
+		fmt.Println("Setting up a new configuration file")
 
-			fmt.Println(e.Bib())
-			fmt.Println()
+		path, _ := homedir.Dir()
+		path = filepath.Join(path, ".config", "scholar", "config.yaml")
+		if err := ioutil.WriteFile(path, configDefault, 0644); err != nil {
+			panic(nil)
+		}
+
+		if err := viper.ReadInConfig(); err != nil {
+			panic(nil)
 		}
 	}
+
+	editor(viper.ConfigFileUsed())
 }
