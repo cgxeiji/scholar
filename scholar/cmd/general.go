@@ -137,7 +137,10 @@ func libraryPath() string {
 
 func entryQuery(search string) *scholar.Entry {
 	gui()
-	return &scholar.Entry{}
+	if selectedEntry == nil {
+		os.Exit(0)
+	}
+	return selectedEntry
 }
 
 func gui() {
@@ -165,6 +168,18 @@ func gui() {
 		panic(err)
 	}
 
+	if err := g.SetKeybinding("main", gocui.KeyEnter, gocui.ModNone, guiSelect); err != nil {
+		panic(err)
+	}
+
+	if err := g.SetKeybinding("main", gocui.KeySpace, gocui.ModNone, guiShowInfo); err != nil {
+		panic(err)
+	}
+
+	if err := g.SetKeybinding("info", gocui.KeySpace, gocui.ModNone, guiHideInfo); err != nil {
+		panic(err)
+	}
+
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
 		panic(err)
 	}
@@ -183,6 +198,67 @@ func toggleSearch(g *gocui.Gui, v *gocui.View) error {
 	_, err := g.SetCurrentView("search")
 	g.Cursor = true
 	return err
+}
+
+func guiSelect(g *gocui.Gui, v *gocui.View) error {
+	_, cy := v.Cursor()
+	selectedEntry = showList[cy]
+
+	return gocui.ErrQuit
+}
+
+func guiShowInfo(g *gocui.Gui, v *gocui.View) error {
+	_, cy := v.Cursor()
+	entry := showList[cy]
+
+	maxX, maxY := g.Size()
+	if v, err := g.SetView("info", maxX/10, maxY/10, maxX/10*9, maxY/10*9); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Wrap = true
+		v.Editable = true
+		g.Cursor = true
+
+		v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+			switch {
+			case key == gocui.KeyArrowDown:
+				v.MoveCursor(0, 1, false)
+			case key == gocui.KeyArrowUp:
+				v.MoveCursor(0, -1, false)
+			case key == gocui.KeyArrowLeft:
+				v.MoveCursor(-1, 0, false)
+			case key == gocui.KeyArrowRight:
+				v.MoveCursor(1, 0, false)
+			case ch == 'j':
+				v.MoveCursor(0, 1, false)
+			case ch == 'k':
+				v.MoveCursor(0, -1, false)
+			case ch == 'h':
+				v.MoveCursor(-1, 0, false)
+			case ch == 'l':
+				v.MoveCursor(1, 0, false)
+			}
+		})
+
+		fmt.Fprint(v, entry.Bib())
+		if _, err := g.SetCurrentView("info"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func guiHideInfo(g *gocui.Gui, v *gocui.View) error {
+	if err := g.DeleteView("info"); err != nil {
+		return err
+	}
+	g.Cursor = false
+	if _, err := g.SetCurrentView("main"); err != nil {
+		return err
+	}
+	return nil
 }
 
 func layout(g *gocui.Gui) error {
@@ -220,12 +296,6 @@ func layout(g *gocui.Gui) error {
 				v.EditDelete(false)
 			case key == gocui.KeyInsert:
 				v.Overwrite = !v.Overwrite
-			case key == gocui.KeyEnter:
-				v.EditNewLine()
-			case key == gocui.KeyArrowDown:
-				v.MoveCursor(0, 1, false)
-			case key == gocui.KeyArrowUp:
-				v.MoveCursor(0, -1, false)
 			case key == gocui.KeyArrowLeft:
 				v.MoveCursor(-1, 0, false)
 			case key == gocui.KeyArrowRight:
@@ -276,10 +346,6 @@ func layout(g *gocui.Gui) error {
 
 		v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 			switch {
-			case key == gocui.KeySpace:
-				v.EditWrite(' ')
-			case key == gocui.KeyEnter:
-				v.EditNewLine()
 			case key == gocui.KeyArrowDown:
 				v.MoveCursor(0, 1, false)
 			case key == gocui.KeyArrowUp:
@@ -320,6 +386,7 @@ func layout(g *gocui.Gui) error {
 }
 
 var showList []*scholar.Entry
+var selectedEntry *scholar.Entry
 
 func guiSearch(vsearch *gocui.View, vmain *gocui.View, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) {
 	vmain.Clear()
