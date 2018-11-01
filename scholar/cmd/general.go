@@ -259,7 +259,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Entries"
+		v.Title = "ENTRIES"
 		v.Editable = true
 		v.Highlight = true
 		v.SelBgColor = gocui.ColorGreen
@@ -312,7 +312,7 @@ func layout(g *gocui.Gui) error {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		v.Title = "Details"
+		v.Title = "DETAILS"
 		v.Wrap = true
 		fmt.Fprint(v, showList[0].Bib())
 	}
@@ -341,13 +341,6 @@ func guiSearch(vsearch *gocui.View, vmain *gocui.View, entries []*scholar.Entry,
 
 func formatEntry(entry *scholar.Entry) string {
 	return fmt.Sprintf("\033[32;1m%-40.40s  \033[33;1m(%-4.4s)  \033[31;1m%-20.20s\033[0m\n",
-		entry.Required["title"],
-		entry.Required["date"],
-		entry.Required["author"])
-}
-
-func selectedEntry(entry *scholar.Entry) string {
-	return fmt.Sprintf("\033[32;3m%-40.40s  \033[33;3m(%-4.4s)  \033[31;3m%-20.20s\033[0m\n",
 		entry.Required["title"],
 		entry.Required["date"],
 		entry.Required["author"])
