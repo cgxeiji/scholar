@@ -214,7 +214,7 @@ func guiShowInfo(g *gocui.Gui, v *gocui.View) error {
 	entry := showList[cy]
 
 	maxX, maxY := g.Size()
-	if v, err := g.SetView("info", maxX/10, maxY/10, maxX/10*9, maxY/10*9); err != nil {
+	if v, err := g.SetView("info", maxX/10, maxY/10, maxX*9/10, maxY*9/10); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -429,9 +429,18 @@ func formatEntry(entry *scholar.Entry, width int) string {
 }
 
 func formatEntryInfo(w io.Writer, e *scholar.Entry) {
-	fmt.Fprintf(w, "Title:\n  \033[32;1m%s\033[0m\nAuthor(s):\n  \033[31;1m%s\033[0m\nDate:\n  \033[33;1m%s\033[0m\n",
-		e.Required["title"],
-		e.Required["author"],
+	fmt.Fprintf(w, "\033[32;7m[%s]\033[0m\n",
+		strings.ToTitle(e.Type))
+	fmt.Fprintf(w, "Title:\n  \033[32;1m%s\033[0m\n",
+		e.Required["title"])
+	aus := strings.Split(e.Required["author"], " and ")
+	fmt.Fprintf(w, "Author(s):\n")
+	for _, au := range aus {
+		fmt.Fprintf(w, "  \033[31;1m%s\033[0m\n",
+			au)
+	}
+
+	fmt.Fprintf(w, "Date:\n  \033[33;1m%s\033[0m\n",
 		e.Required["date"])
 
 	var fields []string

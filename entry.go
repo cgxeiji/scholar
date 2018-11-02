@@ -111,6 +111,43 @@ func (e *Entry) GetKey() string {
 	return e.Key
 }
 
+// Convert changes the type of an entry, parsing all the fields from one
+// type to the other.
+// If the entry does not exits, it defaults to misc entry.
+// TODO: create a ErrFieldNotFound error
+func Convert(e *Entry, entryType string) *Entry {
+	to := NewEntry(entryType)
+	to.Key = e.Key
+	to.Attach(e.File)
+
+	// Check for the new required fields in the required and
+	// optional fields of the old entry
+	for field := range to.Required {
+		if value, ok := e.Required[field]; ok {
+			to.Required[field] = value
+			delete(e.Required, field)
+		} else if value, ok := e.Optional[field]; ok {
+			to.Required[field] = value
+			delete(e.Optional, field)
+		}
+	}
+
+	// Dump of remaining required fields of the old entry to
+	// optional fields of the new entry
+	for field, value := range e.Required {
+		if value != "" {
+			to.Optional[field] = value
+		}
+	}
+	for field, value := range e.Optional {
+		if value != "" {
+			to.Optional[field] = value
+		}
+	}
+
+	return to
+}
+
 // Bib returns a string with all the information of the entry
 // in BibLaTex format.
 func (e *Entry) Bib() string {

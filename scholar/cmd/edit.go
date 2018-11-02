@@ -21,6 +21,7 @@
 package cmd
 
 import (
+	"github.com/cgxeiji/scholar"
 	"github.com/spf13/cobra"
 )
 
@@ -42,15 +43,22 @@ TODO:
 			attach(entry, addAttach)
 			return
 		}
+		if editType != "" {
+			entry = scholar.Convert(entry, editType)
+			update(entry)
+		}
 		edit(entry)
 		update(entry)
 	},
 }
 
+var editType string
+
 func init() {
 	rootCmd.AddCommand(editCmd)
 
 	editCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
+	editCmd.Flags().StringVarP(&editType, "type", "t", "", "change the type of the entry")
 
 	// Here you will define your flags and configuration settings.
 
