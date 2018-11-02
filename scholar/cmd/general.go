@@ -248,6 +248,11 @@ func gui(entries []*scholar.Entry, search string) {
 					guiSearch(v, vm, entries, searcher)
 					v.SetCursor(len(search), 0)
 
+					if len(showList) == 1 {
+						selectedEntry = showList[0]
+						return gocui.ErrQuit
+					}
+
 					vd, err := g.View("detail")
 					if err != nil {
 						panic(err)
