@@ -21,6 +21,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/cgxeiji/scholar"
 	"github.com/spf13/cobra"
 )
@@ -38,7 +40,7 @@ TODO:
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		entry := entryQuery("")
+		entry := queryFrom(entryList(), strings.Join(args, " "))
 		if addAttach != "" {
 			attach(entry, addAttach)
 			return
@@ -48,7 +50,6 @@ TODO:
 			update(entry)
 		}
 		edit(entry)
-		update(entry)
 	},
 }
 

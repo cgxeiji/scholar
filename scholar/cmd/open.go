@@ -53,7 +53,7 @@ TODO: if there is no file attached, the entry's metadata file is opened.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Make a entry search menu
-		open(entryQuery("").File)
+		open(queryFrom(entryList(), strings.Join(args, " ")).File)
 	},
 }
 
