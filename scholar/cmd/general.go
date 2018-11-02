@@ -22,12 +22,14 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/cgxeiji/scholar"
@@ -357,6 +359,7 @@ func layout(g *gocui.Gui) error {
 			}
 
 			g.Update(func(g *gocui.Gui) error {
+				_, oy := v.Origin()
 				_, cy := v.Cursor()
 
 				vd, err := g.View("detail")
@@ -365,8 +368,9 @@ func layout(g *gocui.Gui) error {
 				}
 
 				vd.Clear()
-				if len(showList) > 0 && cy < len(showList) {
-					fmt.Fprint(vd, showList[cy].Bib())
+				if len(showList) > 0 && cy+oy < len(showList) {
+					formatEntryInfo(vd, showList[cy+oy])
+					//fmt.Fprint(vd, showList[cy+oy].Bib())
 				}
 
 				return nil
@@ -413,6 +417,43 @@ func formatEntry(entry *scholar.Entry, width int) string {
 		width/3*2-4, width/3*2-4, entry.Required["title"],
 		entry.Required["date"],
 		width/3, width/3, entry.Required["author"])
+}
+
+func formatEntryInfo(w io.Writer, e *scholar.Entry) {
+	fmt.Fprintf(w, "Title:\n  \033[32;1m%s\033[0m\nAuthor(s):\n  \033[31;1m%s\033[0m\nDate:\n  \033[33;1m%s\033[0m\n",
+		e.Required["title"],
+		e.Required["author"],
+		e.Required["date"])
+
+	var fields []string
+	for f := range e.Required {
+		if f != "title" && f != "author" && f != "date" {
+			fields = append(fields, f)
+		}
+	}
+	if value := e.File; value != "" {
+		fmt.Fprintf(w, "%s:\n  \033[31;4m%s\033[0m\n", "File", value)
+	}
+	sort.Strings(fields)
+	for _, field := range fields {
+		if value := e.Required[field]; value != "" {
+			fmt.Fprintf(w, "%s:\n  \033[33;1m%s\033[0m\n", strings.Title(field), value)
+		}
+	}
+
+	fields = nil
+	for f := range e.Optional {
+		fields = append(fields, f)
+	}
+	sort.Strings(fields)
+	for _, field := range fields {
+		if value := e.Optional[field]; value != "" && field != "abstract" {
+			fmt.Fprintf(w, "%s:\n  \033[33;1m%s\033[0m\n", strings.Title(field), value)
+		}
+	}
+	if value, ok := e.Optional["abstract"]; ok {
+		fmt.Fprintf(w, "%s:\n  \033[33;1m%s\033[0m\n", strings.Title("abstract"), value)
+	}
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
