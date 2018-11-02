@@ -370,7 +370,6 @@ func layout(g *gocui.Gui) error {
 				vd.Clear()
 				if len(showList) > 0 && cy+oy < len(showList) {
 					formatEntryInfo(vd, showList[cy+oy])
-					//fmt.Fprint(vd, showList[cy+oy].Bib())
 				}
 
 				return nil
@@ -384,7 +383,7 @@ func layout(g *gocui.Gui) error {
 		}
 		v.Title = "DETAILS"
 		v.Wrap = true
-		fmt.Fprint(v, showList[0].Bib())
+		formatEntryInfo(v, showList[0])
 	}
 	return nil
 }
