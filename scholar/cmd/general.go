@@ -329,6 +329,11 @@ func gui(entries []*scholar.Entry, search string) {
 		panic(err)
 	}
 
+	g.InputEsc = true
+	if err := g.SetKeybinding("search", gocui.KeyEsc, gocui.ModNone, toggleSearch); err != nil {
+		panic(err)
+	}
+
 	if err := g.SetKeybinding("main", gocui.KeyEnter, gocui.ModNone, guiSelect); err != nil {
 		panic(err)
 	}
