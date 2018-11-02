@@ -173,18 +173,22 @@ func requestSearch() string {
 	return res
 }
 
-func commit(entry *scholar.Entry) {
-	key := entry.GetKey()
-	saveTo := filepath.Join(viper.GetString("deflib"), key)
-	if currentLibrary != "" {
-		saveTo = filepath.Join(viper.Sub("LIBRARIES").GetString(currentLibrary), key)
+func getUniqueKey(key string) string {
+	path := libraryPath()
+	mark := 'a'
+	valid := key
+
+	for _, err := os.Stat(filepath.Join(path, valid)); !os.IsNotExist(err); _, err = os.Stat(filepath.Join(path, valid)) {
+		valid = fmt.Sprintf("%s%s", key, string(mark))
+		mark++
 	}
 
-	if _, err := os.Stat(saveTo); !os.IsNotExist(err) {
-		//TODO: make a better algorithm for unique keys
-		saveTo = fmt.Sprintf("%sa", saveTo)
-		entry.Key = fmt.Sprintf("%sa", key)
-	}
+	return valid
+}
+
+func commit(entry *scholar.Entry) {
+	entry.Key = getUniqueKey(entry.GetKey())
+	saveTo := filepath.Join(libraryPath(), entry.Key)
 
 	err := os.MkdirAll(saveTo, os.ModePerm)
 	if err != nil {
