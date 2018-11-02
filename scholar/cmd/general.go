@@ -320,7 +320,7 @@ func layout(g *gocui.Gui) error {
 				}
 				vd.Clear()
 				if len(showList) > 0 {
-					fmt.Fprint(vd, showList[0].Bib())
+					formatEntryInfo(vd, showList[0])
 				}
 				return nil
 			})

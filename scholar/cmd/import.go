@@ -100,6 +100,9 @@ func importParse(filename string) {
 	// Make sure all entries are correctly parsed before commiting
 	for _, e := range es {
 		commit(e)
+		if e.File != "" {
+			attach(e, e.File)
+		}
 	}
 
 	fmt.Println("Import from", filename, "successful!")

@@ -38,6 +38,10 @@ TODO:
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		entry := entryQuery("")
+		if addAttach != "" {
+			attach(entry, addAttach)
+			return
+		}
 		edit(entry)
 		update(entry)
 	},
@@ -45,6 +49,8 @@ TODO:
 
 func init() {
 	rootCmd.AddCommand(editCmd)
+
+	editCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
 
 	// Here you will define your flags and configuration settings.
 

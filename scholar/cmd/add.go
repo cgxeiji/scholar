@@ -351,11 +351,13 @@ func add(entryType string) *scholar.Entry {
 
 func attach(entry *scholar.Entry, file string) {
 	key := entry.GetKey()
-	saveTo := filepath.Join(viper.GetString("deflib"), key)
+	saveTo := filepath.Join(libraryPath(), key)
 
 	src, err := os.Open(file)
 	if err != nil {
-		panic(err)
+		fmt.Println("Attempted to:")
+		fmt.Println(" ", err)
+		return
 	}
 	defer src.Close()
 
