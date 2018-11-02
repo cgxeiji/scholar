@@ -385,6 +385,16 @@ func layout(g *gocui.Gui) error {
 		v.Wrap = true
 		formatEntryInfo(v, showList[0])
 	}
+
+	helpString := " /: search, space: biblatex, enter: open, q: quit, ^c: exit "
+
+	if v, err := g.SetView("help", 1, maxY-2, len(helpString)+2, maxY); err != nil {
+		if err != gocui.ErrUnknownView {
+			return err
+		}
+		v.Frame = false
+		fmt.Fprint(v, helpString)
+	}
 	return nil
 }
 

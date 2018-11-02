@@ -69,6 +69,8 @@ You can TODO`,
 					fmt.Println("Please, add the required fields:")
 					entry = add(t)
 				}
+				commit(entry)
+				edit(entry)
 			} else if doi := query(search); doi != "" {
 				entry = addDOI(doi)
 				commit(entry)
@@ -80,17 +82,31 @@ You can TODO`,
 			s = strings.TrimSuffix(s, filepath.Ext(s))
 			doi := addDoi
 			if doi == "" {
-				doi = query(s)
-			}
-
-			if doi == "" {
-				fmt.Println()
-				if !requestManual("I could not find anything, can you give me a better search variable?") {
+				if !requestManual("Would you like to search the web for metadata?") {
 					doi = query(requestSearch())
-				}
-				if doi != "" {
-					fmt.Println("Getting metadata from doi")
-					entry = addDOI(doi)
+					if doi == "" {
+						fmt.Println()
+						if !requestManual("I could not find anything, can you give me a better search variable?") {
+							doi = query(requestSearch())
+						}
+						if doi != "" {
+							fmt.Println("Getting metadata from doi")
+							entry = addDOI(doi)
+						} else {
+							fmt.Println()
+							fmt.Println("Adding the entry manually...")
+							fmt.Println("What kind of entry is it?")
+							t := selectType()
+							fmt.Println()
+							fmt.Println("Please, add the required fields:")
+							entry = add(t)
+						}
+
+					} else {
+						fmt.Println("Getting metadata from doi")
+						entry = addDOI(doi)
+					}
+
 				} else {
 					fmt.Println()
 					fmt.Println("Adding the entry manually...")
@@ -100,14 +116,11 @@ You can TODO`,
 					fmt.Println("Please, add the required fields:")
 					entry = add(t)
 				}
-
-			} else {
-				fmt.Println("Getting metadata from doi")
-				entry = addDOI(doi)
 			}
 
 			commit(entry)
 			attach(entry, file)
+			edit(entry)
 		}
 
 		fmt.Println()
