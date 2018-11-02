@@ -163,7 +163,11 @@ func gui(entries []*scholar.Entry, search string) {
 				if err != gocui.ErrUnknownView {
 					return err
 				}
-				v.Title = "ENTRIES"
+				l := viper.GetString("GENERAL.default")
+				if currentLibrary != "" {
+					l = currentLibrary
+				}
+				v.Title = fmt.Sprintf("ENTRIES:%s", strings.ToTitle(l))
 				v.Editable = true
 				v.Highlight = true
 				v.SelBgColor = gocui.ColorGreen
