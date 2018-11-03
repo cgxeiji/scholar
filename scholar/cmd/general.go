@@ -31,6 +31,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/cgxeiji/scholar"
 	"github.com/jroimartin/gocui"
@@ -440,13 +441,32 @@ var showList []*scholar.Entry
 var selectedEntry *scholar.Entry
 
 func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) []*scholar.Entry {
-	found := []*scholar.Entry{}
+	var wg sync.WaitGroup
 
-	for _, e := range entries {
-		if searcher(search, e) {
+	found := []*scholar.Entry{}
+	queue := make(chan *scholar.Entry)
+	done := make(chan bool)
+
+	go func() {
+		defer close(done)
+		for e := range queue {
 			found = append(found, e)
 		}
+	}()
+
+	wg.Add(len(entries))
+	for _, e := range entries {
+		e := e
+		go func() {
+			defer wg.Done()
+			if searcher(search, e) {
+				queue <- e
+			}
+		}()
 	}
+	wg.Wait()
+	close(queue)
+	<-done
 
 	// TODO: find a better way to share indexed list
 	showList = found
