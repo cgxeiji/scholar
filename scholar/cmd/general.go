@@ -462,8 +462,9 @@ func formatEntry(entry *scholar.Entry, width int) string {
 }
 
 func formatEntryInfo(w io.Writer, e *scholar.Entry) {
-	fmt.Fprintf(w, "\033[32;7m[%s]\033[0m\n",
-		strings.ToTitle(e.Type))
+	fmt.Fprintf(w, "\033[32;7m[%s]\033[0m \033[31;4m%s\033[0m\n",
+		strings.ToTitle(e.Type),
+		e.GetKey())
 	fmt.Fprintf(w, "Title:\n  \033[32;1m%s\033[0m\n",
 		e.Required["title"])
 	aus := strings.Split(e.Required["author"], " and ")
