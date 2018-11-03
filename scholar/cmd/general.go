@@ -22,19 +22,16 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"sort"
 	"strings"
 	"sync"
 
 	"github.com/cgxeiji/scholar"
-	"github.com/jroimartin/gocui"
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
 )
@@ -137,401 +134,6 @@ func libraryPath() string {
 	return viper.Sub("LIBRARIES").GetString(viper.GetString("GENERAL.default"))
 }
 
-func queryFrom(list []*scholar.Entry, search string) *scholar.Entry {
-	gui(list, search)
-	if selectedEntry == nil {
-		os.Exit(0)
-	}
-	return selectedEntry
-}
-
-func gui(entries []*scholar.Entry, search string) {
-	g, err := gocui.NewGui(gocui.OutputNormal)
-	if err != nil {
-		panic(err)
-	}
-	defer g.Close()
-
-	g.Highlight = true
-	g.SelFgColor = gocui.ColorGreen | gocui.AttrBold
-	g.FgColor = gocui.ColorWhite
-
-	g.SetManagerFunc(
-		func(g *gocui.Gui) error {
-			maxX, maxY := g.Size()
-
-			vmain, err := g.SetView("main", 0, 3, maxX/5*3, maxY-1)
-			if err != nil {
-				if err != gocui.ErrUnknownView {
-					return err
-				}
-				l := viper.GetString("GENERAL.default")
-				if currentLibrary != "" {
-					l = currentLibrary
-				}
-				vmain.Title = fmt.Sprintf("ENTRIES:%s", strings.ToTitle(l))
-				vmain.Editable = true
-				vmain.Highlight = true
-				vmain.SelBgColor = gocui.ColorGreen
-				vmain.SelFgColor = gocui.ColorBlack
-
-				for _, e := range entries {
-					showList = append(showList, e)
-				}
-
-				if _, err := g.SetCurrentView("main"); err != nil {
-					return err
-				}
-
-				vmain.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-					switch {
-					case key == gocui.KeyArrowDown:
-						vmain.MoveCursor(0, 1, false)
-					case key == gocui.KeyArrowUp:
-						vmain.MoveCursor(0, -1, false)
-					case ch == 'j':
-						vmain.MoveCursor(0, 1, false)
-					case ch == 'k':
-						vmain.MoveCursor(0, -1, false)
-					}
-
-					g.Update(func(g *gocui.Gui) error {
-						_, oy := vmain.Origin()
-						_, cy := vmain.Cursor()
-
-						vd, err := g.View("detail")
-						if err != nil {
-							panic(err)
-						}
-
-						vd.Clear()
-						if len(showList) > 0 && cy+oy < len(showList) {
-							formatEntryInfo(vd, showList[cy+oy])
-						}
-
-						return nil
-					})
-				})
-			}
-			vmain.Clear()
-			for _, e := range showList {
-				fmt.Fprint(vmain, formatEntry(e, maxX/5*3))
-			}
-
-			if v, err := g.SetView("detail", maxX/5*3+1, 3, maxX-1, maxY-1); err != nil {
-				if err != gocui.ErrUnknownView {
-					return err
-				}
-				v.Title = "DETAILS"
-				v.Wrap = true
-				formatEntryInfo(v, showList[0])
-			}
-
-			if v, err := g.SetView("search", 0, 0, maxX-1, 2); err != nil {
-				if err != gocui.ErrUnknownView {
-					return err
-				}
-				v.Editable = true
-				v.Title = "SEARCH BAR"
-				fmt.Fprint(v, search)
-
-				searcher := func(input string, entry *scholar.Entry) bool {
-					title := strings.Replace(strings.ToLower(entry.Required["title"]), " ", "", -1)
-					aus := strings.Replace(strings.ToLower(entry.Required["author"]), " ", "", -1)
-					k := strings.Replace(strings.ToLower(entry.Key), " ", "", -1)
-					s := fmt.Sprintf("%s%s%s", title, aus, k)
-					input = strings.TrimSpace(input)
-					input = strings.Replace(strings.ToLower(input), " ", "", -1)
-
-					return strings.Contains(s, input)
-				}
-
-				g.Update(func(g *gocui.Gui) error {
-					vm, err := g.View("main")
-					if err != nil {
-						panic(err)
-					}
-
-					vm.SetCursor(0, 0)
-					vm.SetOrigin(0, 0)
-					v.SetCursor(len(search), 0)
-
-					found := guiSearch(search, entries, searcher)
-
-					if len(found) == 1 {
-						selectedEntry = found[0]
-						return gocui.ErrQuit
-					}
-
-					vd, err := g.View("detail")
-					if err != nil {
-						panic(err)
-					}
-					vd.Clear()
-					if len(found) > 0 {
-						formatEntryInfo(vd, found[0])
-					}
-					return nil
-				})
-
-				v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-					switch {
-					case ch != 0 && mod == 0:
-						v.EditWrite(ch)
-					case key == gocui.KeySpace:
-						v.EditWrite(' ')
-					case key == gocui.KeyBackspace || key == gocui.KeyBackspace2:
-						v.EditDelete(true)
-					case key == gocui.KeyDelete:
-						v.EditDelete(false)
-					case key == gocui.KeyInsert:
-						v.Overwrite = !v.Overwrite
-					case key == gocui.KeyArrowLeft:
-						v.MoveCursor(-1, 0, false)
-					case key == gocui.KeyArrowRight:
-						v.MoveCursor(1, 0, false)
-					}
-
-					g.Update(func(g *gocui.Gui) error {
-						vm, err := g.View("main")
-						if err != nil {
-							panic(err)
-						}
-
-						vm.SetCursor(0, 0)
-						vm.SetOrigin(0, 0)
-						found := guiSearch(v.Buffer(), entries, searcher)
-
-						vd, err := g.View("detail")
-						if err != nil {
-							panic(err)
-						}
-						vd.Clear()
-						if len(found) > 0 {
-							formatEntryInfo(vd, found[0])
-						}
-						return nil
-					})
-				})
-			}
-
-			helpString := " /: search, space: biblatex, enter: open, q: quit, ^c: exit "
-
-			if v, err := g.SetView("help", 1, maxY-2, len(helpString)+2, maxY); err != nil {
-				if err != gocui.ErrUnknownView {
-					return err
-				}
-				v.Frame = false
-				fmt.Fprint(v, helpString)
-			}
-			return nil
-		})
-
-	if err := g.SetKeybinding("main", 'q', gocui.ModNone, quit); err != nil {
-		panic(err)
-	}
-
-	if err := g.SetKeybinding("main", '/', gocui.ModNone, toggleSearch); err != nil {
-		panic(err)
-	}
-
-	if err := g.SetKeybinding("search", gocui.KeyEnter, gocui.ModNone, toggleSearch); err != nil {
-		panic(err)
-	}
-
-	g.InputEsc = true
-	if err := g.SetKeybinding("search", gocui.KeyEsc, gocui.ModNone, toggleSearch); err != nil {
-		panic(err)
-	}
-
-	if err := g.SetKeybinding("main", gocui.KeyEnter, gocui.ModNone, guiSelect); err != nil {
-		panic(err)
-	}
-
-	if err := g.SetKeybinding("main", gocui.KeySpace, gocui.ModNone, guiShowInfo); err != nil {
-		panic(err)
-	}
-
-	if err := g.SetKeybinding("info", gocui.KeySpace, gocui.ModNone, guiHideInfo); err != nil {
-		panic(err)
-	}
-
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		panic(err)
-	}
-
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		panic(err)
-	}
-}
-
-func toggleSearch(g *gocui.Gui, v *gocui.View) error {
-	if v == nil || v.Name() == "search" {
-		_, err := g.SetCurrentView("main")
-		g.Cursor = false
-		return err
-	}
-	_, err := g.SetCurrentView("search")
-	g.Cursor = true
-	return err
-}
-
-func guiSelect(g *gocui.Gui, v *gocui.View) error {
-	_, cy := v.Cursor()
-	selectedEntry = showList[cy]
-
-	return gocui.ErrQuit
-}
-
-func guiShowInfo(g *gocui.Gui, v *gocui.View) error {
-	_, cy := v.Cursor()
-	entry := showList[cy]
-
-	maxX, maxY := g.Size()
-	if v, err := g.SetView("info", maxX/10, maxY/10, maxX*9/10, maxY*9/10); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		v.Wrap = true
-		v.Editable = true
-		g.Cursor = true
-
-		v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
-			switch {
-			case key == gocui.KeyArrowDown:
-				v.MoveCursor(0, 1, false)
-			case key == gocui.KeyArrowUp:
-				v.MoveCursor(0, -1, false)
-			case key == gocui.KeyArrowLeft:
-				v.MoveCursor(-1, 0, false)
-			case key == gocui.KeyArrowRight:
-				v.MoveCursor(1, 0, false)
-			case ch == 'j':
-				v.MoveCursor(0, 1, false)
-			case ch == 'k':
-				v.MoveCursor(0, -1, false)
-			case ch == 'h':
-				v.MoveCursor(-1, 0, false)
-			case ch == 'l':
-				v.MoveCursor(1, 0, false)
-			}
-		})
-
-		fmt.Fprint(v, entry.Bib())
-		if _, err := g.SetCurrentView("info"); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func guiHideInfo(g *gocui.Gui, v *gocui.View) error {
-	if err := g.DeleteView("info"); err != nil {
-		return err
-	}
-	g.Cursor = false
-	if _, err := g.SetCurrentView("main"); err != nil {
-		return err
-	}
-	return nil
-}
-
-var showList []*scholar.Entry
-var selectedEntry *scholar.Entry
-
-func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) []*scholar.Entry {
-	var wg sync.WaitGroup
-
-	found := []*scholar.Entry{}
-	queue := make(chan *scholar.Entry)
-	done := make(chan bool)
-
-	go func() {
-		defer close(done)
-		for e := range queue {
-			found = append(found, e)
-		}
-	}()
-
-	wg.Add(len(entries))
-	for _, e := range entries {
-		e := e
-		go func() {
-			defer wg.Done()
-			if searcher(search, e) {
-				queue <- e
-			}
-		}()
-	}
-	wg.Wait()
-	close(queue)
-	<-done
-
-	// TODO: find a better way to share indexed list
-	showList = found
-
-	return found
-}
-
-func formatEntry(entry *scholar.Entry, width int) string {
-	return fmt.Sprintf("\033[32;1m%-*.*s  \033[33;1m(%-4.4s)  \033[31;1m%-*.*s\033[0m\n",
-		width/3*2-4, width/3*2-4, entry.Required["title"],
-		entry.Required["date"],
-		width/3, width/3, entry.Required["author"])
-}
-
-func formatEntryInfo(w io.Writer, e *scholar.Entry) {
-	fmt.Fprintf(w, "\033[32;7m[%s]\033[0m \033[31;4m%s\033[0m\n",
-		strings.ToTitle(e.Type),
-		e.GetKey())
-	fmt.Fprintf(w, "Title:\n  \033[32;1m%s\033[0m\n",
-		e.Required["title"])
-	aus := strings.Split(e.Required["author"], " and ")
-	fmt.Fprintf(w, "Author(s):\n")
-	for _, au := range aus {
-		fmt.Fprintf(w, "  \033[31;1m%s\033[0m\n",
-			au)
-	}
-
-	fmt.Fprintf(w, "Date:\n  \033[33;1m%s\033[0m\n",
-		e.Required["date"])
-
-	var fields []string
-	for f := range e.Required {
-		if f != "title" && f != "author" && f != "date" {
-			fields = append(fields, f)
-		}
-	}
-	if value := e.File; value != "" {
-		fmt.Fprintf(w, "%s:\n  \033[31;4m%s\033[0m\n", "File", value)
-	}
-	sort.Strings(fields)
-	for _, field := range fields {
-		if value := e.Required[field]; value != "" {
-			fmt.Fprintf(w, "%s:\n  \033[33;1m%s\033[0m\n", strings.Title(field), value)
-		}
-	}
-
-	fields = nil
-	for f := range e.Optional {
-		fields = append(fields, f)
-	}
-	sort.Strings(fields)
-	for _, field := range fields {
-		if value := e.Optional[field]; value != "" && field != "abstract" {
-			fmt.Fprintf(w, "%s:\n  \033[33;1m%s\033[0m\n", strings.Title(field), value)
-		}
-	}
-	if value, ok := e.Optional["abstract"]; ok {
-		fmt.Fprintf(w, "%s:\n  \033[33;1m%s\033[0m\n", strings.Title("abstract"), value)
-	}
-}
-
-func quit(g *gocui.Gui, v *gocui.View) error {
-	return gocui.ErrQuit
-}
-
 func entryList() []*scholar.Entry {
 	path := libraryPath()
 	dirs, err := ioutil.ReadDir(path)
@@ -539,26 +141,42 @@ func entryList() []*scholar.Entry {
 		panic(err)
 	}
 
-	var entries []*scholar.Entry
+	var wg sync.WaitGroup
 
-	for _, dir := range dirs {
-		if dir.IsDir() {
-			d, err := ioutil.ReadFile(filepath.Join(path, dir.Name(), "entry.yaml"))
-			if err != nil {
-				panic(err)
-			}
+	entries := []*scholar.Entry{}
+	queue := make(chan *scholar.Entry)
+	done := make(chan bool)
 
-			var e scholar.Entry
-			err = yaml.Unmarshal(d, &e)
-			if err != nil {
-				panic(err)
-			}
-
-			checkDirKey(path, dir.Name(), &e)
-
-			entries = append(entries, &e)
+	go func() {
+		defer close(done)
+		for e := range queue {
+			entries = append(entries, e)
 		}
+	}()
+
+	wg.Add(len(dirs))
+	for _, dir := range dirs {
+		dir := dir
+		go func() {
+			defer wg.Done()
+			if dir.IsDir() {
+				d, err := ioutil.ReadFile(filepath.Join(path, dir.Name(), "entry.yaml"))
+				if err != nil {
+					panic(err)
+				}
+				var e scholar.Entry
+				if err := yaml.Unmarshal(d, &e); err != nil {
+					panic(err)
+				}
+
+				checkDirKey(path, dir.Name(), &e)
+				queue <- &e
+			}
+		}()
 	}
+	wg.Wait()
+	close(queue)
+	<-done
 
 	return entries
 }

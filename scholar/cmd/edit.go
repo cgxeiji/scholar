@@ -40,16 +40,17 @@ TODO:
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		entry := queryFrom(entryList(), strings.Join(args, " "))
-		if addAttach != "" {
-			attach(entry, addAttach)
-			return
+		if entry := guiQuery(entryList(), strings.Join(args, " ")); entry != nil {
+			if addAttach != "" {
+				attach(entry, addAttach)
+				return
+			}
+			if editType != "" {
+				entry = scholar.Convert(entry, editType)
+				update(entry)
+			}
+			edit(entry)
 		}
-		if editType != "" {
-			entry = scholar.Convert(entry, editType)
-			update(entry)
-		}
-		edit(entry)
 	},
 }
 
