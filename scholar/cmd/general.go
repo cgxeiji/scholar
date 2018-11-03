@@ -159,7 +159,8 @@ func gui(entries []*scholar.Entry, search string) {
 		func(g *gocui.Gui) error {
 			maxX, maxY := g.Size()
 
-			if v, err := g.SetView("main", 0, 3, maxX/5*3, maxY-1); err != nil {
+			vmain, err := g.SetView("main", 0, 3, maxX/5*3, maxY-1)
+			if err != nil {
 				if err != gocui.ErrUnknownView {
 					return err
 				}
@@ -167,36 +168,35 @@ func gui(entries []*scholar.Entry, search string) {
 				if currentLibrary != "" {
 					l = currentLibrary
 				}
-				v.Title = fmt.Sprintf("ENTRIES:%s", strings.ToTitle(l))
-				v.Editable = true
-				v.Highlight = true
-				v.SelBgColor = gocui.ColorGreen
-				v.SelFgColor = gocui.ColorBlack
+				vmain.Title = fmt.Sprintf("ENTRIES:%s", strings.ToTitle(l))
+				vmain.Editable = true
+				vmain.Highlight = true
+				vmain.SelBgColor = gocui.ColorGreen
+				vmain.SelFgColor = gocui.ColorBlack
 
 				for _, e := range entries {
 					showList = append(showList, e)
-					fmt.Fprint(v, formatEntry(e, maxX/5*3))
 				}
 
 				if _, err := g.SetCurrentView("main"); err != nil {
 					return err
 				}
 
-				v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
+				vmain.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 					switch {
 					case key == gocui.KeyArrowDown:
-						v.MoveCursor(0, 1, false)
+						vmain.MoveCursor(0, 1, false)
 					case key == gocui.KeyArrowUp:
-						v.MoveCursor(0, -1, false)
+						vmain.MoveCursor(0, -1, false)
 					case ch == 'j':
-						v.MoveCursor(0, 1, false)
+						vmain.MoveCursor(0, 1, false)
 					case ch == 'k':
-						v.MoveCursor(0, -1, false)
+						vmain.MoveCursor(0, -1, false)
 					}
 
 					g.Update(func(g *gocui.Gui) error {
-						_, oy := v.Origin()
-						_, cy := v.Cursor()
+						_, oy := vmain.Origin()
+						_, cy := vmain.Cursor()
 
 						vd, err := g.View("detail")
 						if err != nil {
@@ -211,6 +211,10 @@ func gui(entries []*scholar.Entry, search string) {
 						return nil
 					})
 				})
+			}
+			vmain.Clear()
+			for _, e := range showList {
+				fmt.Fprint(vmain, formatEntry(e, maxX/5*3))
 			}
 
 			if v, err := g.SetView("detail", maxX/5*3+1, 3, maxX-1, maxY-1); err != nil {
@@ -249,11 +253,12 @@ func gui(entries []*scholar.Entry, search string) {
 
 					vm.SetCursor(0, 0)
 					vm.SetOrigin(0, 0)
-					guiSearch(v, vm, entries, searcher)
 					v.SetCursor(len(search), 0)
 
-					if len(showList) == 1 {
-						selectedEntry = showList[0]
+					found := guiSearch(search, entries, searcher)
+
+					if len(found) == 1 {
+						selectedEntry = found[0]
 						return gocui.ErrQuit
 					}
 
@@ -262,8 +267,8 @@ func gui(entries []*scholar.Entry, search string) {
 						panic(err)
 					}
 					vd.Clear()
-					if len(showList) > 0 {
-						formatEntryInfo(vd, showList[0])
+					if len(found) > 0 {
+						formatEntryInfo(vd, found[0])
 					}
 					return nil
 				})
@@ -294,15 +299,15 @@ func gui(entries []*scholar.Entry, search string) {
 
 						vm.SetCursor(0, 0)
 						vm.SetOrigin(0, 0)
-						guiSearch(v, vm, entries, searcher)
+						found := guiSearch(v.Buffer(), entries, searcher)
 
 						vd, err := g.View("detail")
 						if err != nil {
 							panic(err)
 						}
 						vd.Clear()
-						if len(showList) > 0 {
-							formatEntryInfo(vd, showList[0])
+						if len(found) > 0 {
+							formatEntryInfo(vd, found[0])
 						}
 						return nil
 					})
@@ -434,24 +439,19 @@ func guiHideInfo(g *gocui.Gui, v *gocui.View) error {
 var showList []*scholar.Entry
 var selectedEntry *scholar.Entry
 
-func guiSearch(vsearch *gocui.View, vmain *gocui.View, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) {
-	vmain.Clear()
-
-	input := vsearch.Buffer()
-	showList = []*scholar.Entry{}
+func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) []*scholar.Entry {
+	found := []*scholar.Entry{}
 
 	for _, e := range entries {
-		if searcher(input, e) {
-			showList = append(showList, e)
+		if searcher(search, e) {
+			found = append(found, e)
 		}
 	}
 
-	maxX, _ := vmain.Size()
+	// TODO: find a better way to share indexed list
+	showList = found
 
-	for _, e := range showList {
-		fmt.Fprint(vmain, formatEntry(e, maxX))
-	}
-
+	return found
 }
 
 func formatEntry(entry *scholar.Entry, width int) string {
