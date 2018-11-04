@@ -59,13 +59,13 @@ TODO: Add a flag for manual/auto input of metadata
 		if _, err := os.Stat(file); os.IsNotExist(err) {
 			if search == "" {
 				doi := addDoi
-				if !requestManual("Would you like to search the web for metadata?") {
-					doi = query(requestSearch())
-				}
 				if doi != "" {
 					fmt.Println("Getting metadata from doi")
 					entry = addDOI(doi)
 				} else {
+					if !requestManual("Would you like to search the web for metadata?") {
+						doi = query(requestSearch())
+					}
 					fmt.Println()
 					fmt.Println("Adding the entry manually...")
 					fmt.Println("What kind of entry is it?")
