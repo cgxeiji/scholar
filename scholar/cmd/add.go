@@ -121,6 +121,9 @@ TODO: Add a flag for manual/auto input of metadata
 					fmt.Println("Please, add the required fields:")
 					entry = add(t)
 				}
+			} else {
+				fmt.Println("Getting metadata from doi")
+				entry = addDOI(doi)
 			}
 
 			commit(entry)
