@@ -32,12 +32,11 @@ import (
 // importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:   "import",
-	Short: "Imports a bibtex/biblatex file",
+	Short: "Import a bibtex/biblatex file",
 	Long: `Scholar: a CLI Reference Manager
 
-Import a bibtex/biblatex file into a library in Scholar.
-
-	`,
+Import a bibtex/biblatex file into a library.
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {
 			importParse(args[0])

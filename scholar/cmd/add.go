@@ -42,10 +42,15 @@ import (
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add [FILENAME/QUERY]",
-	Short: "Adds a new entry",
-	Long: `Add a new entry to scholar.
+	Short: "Add a new entry",
+	Long: `Scholar: a CLI Reference Manager
 
-You can TODO`,
+Add a new entry to a library.
+
+--------------------------------------------------------------------------------
+TODO: Add a flag for manual/auto input of metadata
+--------------------------------------------------------------------------------
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var entry *scholar.Entry
 

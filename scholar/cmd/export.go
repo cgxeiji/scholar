@@ -34,7 +34,7 @@ import (
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
 	Use:   "export",
-	Short: "Exports entries",
+	Short: "Export entries",
 	Long: `Scholar: a CLI Reference Manager
 
 Print all entries to stdout using biblatex format.
@@ -45,7 +45,6 @@ To save to a file run:
 
 --------------------------------------------------------------------------------
 TODO: add different export formats
-TODO: add flag to specify which library to export
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {

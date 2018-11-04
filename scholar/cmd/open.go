@@ -34,19 +34,21 @@ import (
 
 // openCmd represents the open command
 var openCmd = &cobra.Command{
-	Use:   "open [KEY]",
-	Short: "Opens an entry",
+	Use:   "open [SEARCH]",
+	Short: "Open an entry",
 	Long: `Scholar: a CLI Reference Manager
 
 Open an entry's attached file with the default system's software.
+If no file is attached, it opens the entry's url.
+If no url is available, it opens the entry's DOI.
 
-To search for an entry run:
+To select an entry from the database run:
 
 	scholar open
 
-to specify which entry to open run:
+To specify which entry to open run:
 
-	scholar open KEY
+	scholar open SEARCH TERM
 
 --------------------------------------------------------------------------------
 TODO: if there are multiple files attached, a selection menu appears.

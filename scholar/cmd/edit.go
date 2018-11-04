@@ -30,14 +30,10 @@ import (
 // editCmd represents the edit command
 var editCmd = &cobra.Command{
 	Use:   "edit",
-	Short: "Edits an entry",
+	Short: "Edit an entry",
 	Long: `Scholar: a CLI Reference Manager
 
 Edit an entry's metadata using the default's text editor.
-
---------------------------------------------------------------------------------
-TODO:
---------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if entry := guiQuery(entryList(), strings.Join(args, " ")); entry != nil {

@@ -33,7 +33,7 @@ import (
 // configCmd represents the config command
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Configures Scholar",
+	Short: "Configure Scholar",
 	Long: `Scholar: a CLI Reference Manager
 
 Configure and modify the settings of Scholar.
@@ -43,7 +43,6 @@ in the current directory, or at the default
 location.
 
 If there is no configuration file available,
-of if it is the first time running this command,
 a configuration file will be created at:
 	
 	$HOME/.config/scholar/config.yaml
