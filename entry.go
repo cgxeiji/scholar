@@ -176,6 +176,9 @@ func (e *Entry) Bib() string {
 	if value, ok := e.Optional["abstract"]; ok {
 		bib = fmt.Sprintf("%s  %s = {%s},\n", bib, "abstract", value)
 	}
+	if file := e.File; file != "" {
+		bib = fmt.Sprintf("%s  %s = {%s},\n", bib, "file", file)
+	}
 
 	bib = fmt.Sprintf("%s\n}", bib[:len(bib)-2])
 	return bib
