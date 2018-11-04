@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/cgxeiji/scholar"
 	homedir "github.com/mitchellh/go-homedir"
@@ -98,8 +99,15 @@ func initConfig() {
 		}
 
 		path = filepath.Join(path, "config.yaml")
-		if err := ioutil.WriteFile(path, configTemplate, 0644); err != nil {
-			panic(err)
+		switch runtime.GOOS {
+		case "windows":
+			if err := ioutil.WriteFile(path, configTemplateWin, 0644); err != nil {
+				panic(err)
+			}
+		default:
+			if err := ioutil.WriteFile(path, configTemplate, 0644); err != nil {
+				panic(err)
+			}
 		}
 
 		if err := viper.ReadInConfig(); err != nil {
