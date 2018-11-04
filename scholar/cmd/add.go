@@ -402,7 +402,7 @@ func attach(entry *scholar.Entry, file string) {
 	}
 	fmt.Println("Copied", b, "bytes to", path)
 	// horrible placeholder
-	entry.File = path
+	entry.Attach(filename)
 
 	update(entry)
 }
