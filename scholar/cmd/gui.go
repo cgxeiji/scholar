@@ -32,7 +32,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var helpString = " /: search, space: biblatex, enter: open, q: quit, ^c: exit "
+var helpString = " /: search, space: cite, enter: select, q: quit, ^c: exit "
 var showList []*scholar.Entry
 
 func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
@@ -150,6 +150,7 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 			found := guiSearch(search, entries, searcher)
 			switch len(found) {
 			case 0:
+				return gocui.ErrQuit
 			case 1:
 				selEntryCh <- found[0]
 				return gocui.ErrQuit
