@@ -148,13 +148,16 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 
 			// Check if the initial search is a unique result
 			found := guiSearch(search, entries, searcher)
-			if len(found) == 1 {
+			switch len(found) {
+			case 0:
+			case 1:
 				selEntryCh <- found[0]
 				return gocui.ErrQuit
+			default:
+				showInfoCh <- found[0]
 			}
 
 			v.SetCursor(len(search), 0)
-			showInfoCh <- found[0]
 			resetCursorCh <- true
 
 			v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
@@ -176,8 +179,9 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 				}
 
 				if ch != 0 && mod == 0 || key == gocui.KeyBackspace || key == gocui.KeyBackspace2 || key == gocui.KeyDelete {
-					found := guiSearch(v.Buffer(), entries, searcher)
-					showInfoCh <- found[0]
+					if found := guiSearch(v.Buffer(), entries, searcher); len(found) > 0 {
+						showInfoCh <- found[0]
+					}
 					resetCursorCh <- true
 				}
 			})
