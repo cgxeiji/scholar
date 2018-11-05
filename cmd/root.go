@@ -119,16 +119,6 @@ func initConfig() {
 		fmt.Println("Configuration file used:", viper.ConfigFileUsed())
 	}
 
-	dl := viper.Sub("LIBRARIES").GetString(
-		viper.GetString("GENERAL.default"))
-
-	dlex, err := homedir.Expand(dl)
-	if err != nil {
-		panic(err)
-	}
-
-	viper.Set("deflib", dlex)
-
 	for k, v := range viper.GetStringMapString("LIBRARIES") {
 		vex, err := homedir.Expand(v)
 		if err != nil {
@@ -173,7 +163,7 @@ func initConfig() {
 		fmt.Println("Types file used:", et.ConfigFileUsed())
 	}
 
-	err = scholar.LoadTypes(et.ConfigFileUsed())
+	err := scholar.LoadTypes(et.ConfigFileUsed())
 	if err != nil {
 		panic(err)
 	}
