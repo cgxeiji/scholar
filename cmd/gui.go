@@ -106,8 +106,12 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 			}
 		} else {
 			v.Clear()
-			for _, e := range showList {
-				fmt.Fprint(v, formatEntry(e, maxX/5*3))
+			for i, e := range showList {
+				fe := formatEntry(e, maxX*3/5)
+				if i == len(showList)-1 {
+					fe = strings.TrimSpace(fe)
+				}
+				fmt.Fprint(v, fe)
 			}
 		}
 
