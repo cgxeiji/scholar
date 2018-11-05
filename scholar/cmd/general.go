@@ -140,7 +140,7 @@ func entryList() []*scholar.Entry {
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println(`
-Add an entry to create this directory or run
+Add an entry to create this directory or run:
 
 	scholar config
 
