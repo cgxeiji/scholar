@@ -138,7 +138,15 @@ func entryList() []*scholar.Entry {
 	path := libraryPath()
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		fmt.Println(`
+Add an entry to create this directory or run
+
+	scholar config
+
+to set the correct path of this library.
+`)
+		os.Exit(1)
 	}
 
 	var wg sync.WaitGroup
