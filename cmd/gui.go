@@ -207,6 +207,11 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 	if err := g.SetKeybinding("main", 's', gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
 		sortid = (sortid + 1) % len(sortby)
 		guiSort(showList, sortby[sortid])
+		if len(showList) > 0 {
+			_, oy := v.Origin()
+			_, cy := v.Cursor()
+			showInfoCh <- showList[oy+cy]
+		}
 		return nil
 	}); err != nil {
 		panic(err)
