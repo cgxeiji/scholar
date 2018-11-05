@@ -63,6 +63,7 @@ Available Commands:
 
 Flags:
   -h, --help             help for scholar
+  -i, --interactive      toggle interactive mode (enabled by default)
   -l, --library string   specify the library
 
 Use "scholar [command] --help" for more information about a command.
