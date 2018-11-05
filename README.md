@@ -84,7 +84,7 @@ Done!
 
 - [ ] Add `-i` flag to enable/disable interactive mode.
 - [ ] Add `interactive: true` settings in the configuration file.
-- [ ] Make attached file path relative to entry, unless is an external file.
+- [x] Make attached file path relative to entry, unless is an external file.
 - [ ] Be able to reference a file instead of copying it.
 - [ ] Add support for attaching multiple files.
 
