@@ -126,7 +126,9 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 				for e := range showInfoCh {
 					g.Update(func(g *gocui.Gui) error {
 						v.Clear()
-						formatEntryInfo(v, e)
+						if e != nil {
+							formatEntryInfo(v, e)
+						}
 						return nil
 					})
 				}
@@ -188,6 +190,8 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 				if ch != 0 && mod == 0 || key == gocui.KeyBackspace || key == gocui.KeyBackspace2 || key == gocui.KeyDelete {
 					if found := guiSearch(v.Buffer(), entries, searcher); len(found) > 0 {
 						showInfoCh <- found[0]
+					} else {
+						showInfoCh <- nil
 					}
 					resetCursorCh <- true
 				}
