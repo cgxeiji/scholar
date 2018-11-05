@@ -34,6 +34,8 @@ GENERAL:
   default: scholar
   # Set the default text editor
   editor: vi
+  # Set this to false to disable interactive mode
+  interactive: true
   # Set the email for polite use of CrossRef
   mailto: mail@example.com
 
@@ -60,6 +62,8 @@ GENERAL:
   default: scholar
   # Set the default text editor
   editor: vi
+  # Set this to false to disable interactive mode
+  interactive: true
   # Set the email for polite use of CrossRef
   mailto: mail@example.com
 

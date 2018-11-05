@@ -71,6 +71,8 @@ func init() {
 	//rootCmd.PersistentFlags().StringVar(&confFile, "config", "", "config file (default $HOME/.config/scholar/config.yaml)")
 	//rootCmd.PersistentFlags().StringVar(&typesFile, "types", "", "entry types file (default $HOME/.config/scholar/types.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&currentLibrary, "library", "l", "", "specify the library")
+	rootCmd.PersistentFlags().BoolP("interactive", "i", false, "toggle interactive mode (enabled by default)")
+	viper.BindPFlag("interactive", rootCmd.PersistentFlags().Lookup("interactive"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -86,6 +88,9 @@ func initConfig() {
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
+	// Set default values
+	viper.SetDefault("GENERAL.interactive", true)
+	viper.SetDefault("GENERAL.editor", "vi")
 
 	// Load the configuration file. If not found, auto-generate one.
 	if err := viper.ReadInConfig(); err != nil {

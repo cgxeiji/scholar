@@ -42,7 +42,7 @@ TODO: Add remove confirmation
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entry := guiQuery(entryList(), strings.Join(args, " ")); entry != nil {
+		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
 			path := filepath.Join(libraryPath(), entry.GetKey())
 			if err := os.RemoveAll(path); err != nil {
 				panic(err)

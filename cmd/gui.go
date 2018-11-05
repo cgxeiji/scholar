@@ -143,17 +143,6 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 			v.Title = "SEARCH BAR"
 			fmt.Fprint(v, search)
 
-			searcher := func(input string, entry *scholar.Entry) bool {
-				title := strings.Replace(strings.ToLower(entry.Required["title"]), " ", "", -1)
-				aus := strings.Replace(strings.ToLower(entry.Required["author"]), " ", "", -1)
-				k := strings.Replace(strings.ToLower(entry.Key), " ", "", -1)
-				s := fmt.Sprintf("%s%s%s", title, aus, k)
-				input = strings.TrimSpace(input)
-				input = strings.Replace(strings.ToLower(input), " ", "", -1)
-
-				return strings.Contains(s, input)
-			}
-
 			// Check if the initial search is a unique result
 			found := guiSearch(search, entries, searcher)
 			switch len(found) {
@@ -431,4 +420,15 @@ func formatEntryInfo(w io.Writer, e *scholar.Entry) {
 
 func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
+}
+
+func searcher(input string, entry *scholar.Entry) bool {
+	title := strings.Replace(strings.ToLower(entry.Required["title"]), " ", "", -1)
+	aus := strings.Replace(strings.ToLower(entry.Required["author"]), " ", "", -1)
+	k := strings.Replace(strings.ToLower(entry.Key), " ", "", -1)
+	s := fmt.Sprintf("%s%s%s", title, aus, k)
+	input = strings.TrimSpace(input)
+	input = strings.Replace(strings.ToLower(input), " ", "", -1)
+
+	return strings.Contains(s, input)
 }

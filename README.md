@@ -81,12 +81,25 @@ go get -d github.com/cgxeiji/scholar
 
 Done!
 
+## Interactive Mode
+
+By default, Scholar will launch a selection screen when `edit`, `open`, or
+`remove` commands have a query with more than one entry.
+
+If you want to use Scholar inside a script, you can disable interactive mode by
+passing the flag `-i`, or setting `interactive: false` in the configuration
+file.
+
+When interactive mode is disabled, Scholar will return an `exit status 1` and
+the number of entries found if there is more than one entry that matches the
+query.
+
 ## TODO
 
 ### General
 
-- [ ] Add `-i` flag to enable/disable interactive mode.
-- [ ] Add `interactive: true` settings in the configuration file.
+- [x] Add `-i` flag to enable/disable interactive mode.
+- [x] Add `interactive: true` settings in the configuration file.
 - [x] Make attached file path relative to entry, ~unless is an external file~.
 - [ ] Be able to reference a file instead of copying it.
 - [ ] Add support for attaching multiple files.
@@ -94,6 +107,7 @@ Done!
 ### Add
 
 - [ ] Add a flag for manual/auto input of metadata.
+- [ ] Handle non-interactive mode for add.
 
 ### Config
 

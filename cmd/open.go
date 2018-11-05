@@ -56,7 +56,7 @@ TODO: if there is no file attached, the entry's metadata file is opened.
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entry := guiQuery(entryList(), strings.Join(args, " ")); entry != nil {
+		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
 			if entry.File != "" {
 				open(filepath.Join(libraryPath(), entry.GetKey(), entry.File))
 			} else if url, ok := entry.Optional["url"]; ok && url != "" {
@@ -66,7 +66,7 @@ TODO: if there is no file attached, the entry's metadata file is opened.
 			} else if doi, ok := entry.Optional["doi"]; ok && doi != "" {
 				open(fmt.Sprintf("https://dx.doi.org/%s", doi))
 			} else {
-				fmt.Println("No file or url associated with entry.")
+				fmt.Println("No file, doi, or url associated with entry.")
 				os.Exit(1)
 			}
 		}

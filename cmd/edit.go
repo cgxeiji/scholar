@@ -36,7 +36,7 @@ var editCmd = &cobra.Command{
 Edit an entry's metadata using the default's text editor.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entry := guiQuery(entryList(), strings.Join(args, " ")); entry != nil {
+		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
 			if addAttach != "" {
 				attach(entry, addAttach)
 				return

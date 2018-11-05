@@ -208,3 +208,22 @@ func checkDirKey(path, dir string, e *scholar.Entry) {
 	fmt.Println(" ", filepath.Join(path, dir), ">",
 		filepath.Join(path, e.GetKey()))
 }
+
+func queryEntry(search string) *scholar.Entry {
+	var entry *scholar.Entry
+
+	if viper.GetBool("GENERAL.interactive") != viper.GetBool("interactive") {
+		entry = guiQuery(entryList(), search)
+	} else {
+		found := guiSearch(search, entryList(), searcher)
+		if len(found) == 1 {
+			entry = found[0]
+		} else {
+			fmt.Println("Found", len(found), "entries.")
+			fmt.Println("Please, refine your query.")
+			os.Exit(1)
+		}
+	}
+
+	return entry
+}
