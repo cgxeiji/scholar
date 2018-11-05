@@ -31,7 +31,7 @@ import (
 	"strings"
 
 	"github.com/cgxeiji/crossref"
-	"github.com/cgxeiji/scholar"
+	"github.com/cgxeiji/scholar/scholar"
 	"github.com/manifoldco/promptui"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"

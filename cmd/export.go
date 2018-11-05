@@ -22,87 +22,75 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"io/ioutil"
+	"path/filepath"
 
-	"github.com/cgxeiji/bib"
-	"github.com/cgxeiji/scholar"
+	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	yaml "gopkg.in/yaml.v2"
 )
 
-// importCmd represents the import command
-var importCmd = &cobra.Command{
-	Use:   "import",
-	Short: "Import a bibtex/biblatex file",
+// exportCmd represents the export command
+var exportCmd = &cobra.Command{
+	Use:   "export",
+	Short: "Export entries",
 	Long: `Scholar: a CLI Reference Manager
 
-Import a bibtex/biblatex file into a library.
+Print all entries to stdout using biblatex format.
+
+To save to a file run:
+
+	scholar export > references.bib
+
+--------------------------------------------------------------------------------
+TODO: add different export formats
+--------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) > 0 {
-			importParse(args[0])
-		}
+		export()
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(importCmd)
+	rootCmd.AddCommand(exportCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// importCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// exportCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// importCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// exportCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func importParse(filename string) {
-	file, err := os.Open(filename)
+func export() {
+	path := libraryPath()
+	if currentLibrary != "" {
+		path = viper.Sub("LIBRARIES").GetString(currentLibrary)
+	}
+	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
 
-	entries, err := bib.Unmarshal(file)
-	if err != nil {
-		panic(err)
-	}
+	for _, dir := range dirs {
+		if dir.IsDir() {
+			d, err := ioutil.ReadFile(filepath.Join(path, dir.Name(), "entry.yaml"))
+			if err != nil {
+				panic(err)
+			}
 
-	var es []*scholar.Entry
+			var e scholar.Entry
+			err = yaml.Unmarshal(d, &e)
+			if err != nil {
+				panic(err)
+			}
 
-	for _, entry := range entries {
-		e := scholar.NewEntry(entry["type"])
-		delete(entry, "type")
-		e.Key = entry["key"]
-		delete(entry, "key")
-
-		if file, ok := entry["file"]; ok {
-			e.File = file
-			delete(entry, "file")
-		}
-
-		for req := range e.Required {
-			e.Required[req] = entry[req]
-			delete(entry, req)
-		}
-
-		for opt := range entry {
-			e.Optional[opt] = entry[opt]
-			delete(entry, opt)
-		}
-
-		es = append(es, e)
-	}
-
-	// Make sure all entries are correctly parsed before commiting
-	for _, e := range es {
-		commit(e)
-		if e.File != "" {
-			attach(e, e.File)
+			fmt.Println(e.Bib())
+			fmt.Println()
 		}
 	}
-
-	fmt.Println("Import from", filename, "successful!")
 }

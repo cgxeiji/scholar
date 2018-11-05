@@ -21,50 +21,88 @@
 package cmd
 
 import (
-	"strings"
+	"fmt"
+	"os"
 
-	"github.com/cgxeiji/scholar"
+	"github.com/cgxeiji/bib"
+	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/cobra"
 )
 
-// editCmd represents the edit command
-var editCmd = &cobra.Command{
-	Use:   "edit",
-	Short: "Edit an entry",
+// importCmd represents the import command
+var importCmd = &cobra.Command{
+	Use:   "import",
+	Short: "Import a bibtex/biblatex file",
 	Long: `Scholar: a CLI Reference Manager
 
-Edit an entry's metadata using the default's text editor.
+Import a bibtex/biblatex file into a library.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entry := guiQuery(entryList(), strings.Join(args, " ")); entry != nil {
-			if addAttach != "" {
-				attach(entry, addAttach)
-				return
-			}
-			if editType != "" {
-				entry = scholar.Convert(entry, editType)
-				update(entry)
-			}
-			edit(entry)
+		if len(args) > 0 {
+			importParse(args[0])
 		}
 	},
 }
 
-var editType string
-
 func init() {
-	rootCmd.AddCommand(editCmd)
-
-	editCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
-	editCmd.Flags().StringVarP(&editType, "type", "t", "", "change the type of the entry")
+	rootCmd.AddCommand(importCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// editCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// importCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// editCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// importCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func importParse(filename string) {
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	entries, err := bib.Unmarshal(file)
+	if err != nil {
+		panic(err)
+	}
+
+	var es []*scholar.Entry
+
+	for _, entry := range entries {
+		e := scholar.NewEntry(entry["type"])
+		delete(entry, "type")
+		e.Key = entry["key"]
+		delete(entry, "key")
+
+		if file, ok := entry["file"]; ok {
+			e.File = file
+			delete(entry, "file")
+		}
+
+		for req := range e.Required {
+			e.Required[req] = entry[req]
+			delete(entry, req)
+		}
+
+		for opt := range entry {
+			e.Optional[opt] = entry[opt]
+			delete(entry, opt)
+		}
+
+		es = append(es, e)
+	}
+
+	// Make sure all entries are correctly parsed before commiting
+	for _, e := range es {
+		commit(e)
+		if e.File != "" {
+			attach(e, e.File)
+		}
+	}
+
+	fmt.Println("Import from", filename, "successful!")
 }

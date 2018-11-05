@@ -31,7 +31,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cgxeiji/scholar"
+	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
 )

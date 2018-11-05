@@ -21,76 +21,50 @@
 package cmd
 
 import (
-	"fmt"
-	"io/ioutil"
-	"path/filepath"
+	"strings"
 
-	"github.com/cgxeiji/scholar"
+	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	yaml "gopkg.in/yaml.v2"
 )
 
-// exportCmd represents the export command
-var exportCmd = &cobra.Command{
-	Use:   "export",
-	Short: "Export entries",
+// editCmd represents the edit command
+var editCmd = &cobra.Command{
+	Use:   "edit",
+	Short: "Edit an entry",
 	Long: `Scholar: a CLI Reference Manager
 
-Print all entries to stdout using biblatex format.
-
-To save to a file run:
-
-	scholar export > references.bib
-
---------------------------------------------------------------------------------
-TODO: add different export formats
---------------------------------------------------------------------------------
+Edit an entry's metadata using the default's text editor.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		export()
+		if entry := guiQuery(entryList(), strings.Join(args, " ")); entry != nil {
+			if addAttach != "" {
+				attach(entry, addAttach)
+				return
+			}
+			if editType != "" {
+				entry = scholar.Convert(entry, editType)
+				update(entry)
+			}
+			edit(entry)
+		}
 	},
 }
 
+var editType string
+
 func init() {
-	rootCmd.AddCommand(exportCmd)
+	rootCmd.AddCommand(editCmd)
+
+	editCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
+	editCmd.Flags().StringVarP(&editType, "type", "t", "", "change the type of the entry")
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// exportCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// editCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// exportCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func export() {
-	path := libraryPath()
-	if currentLibrary != "" {
-		path = viper.Sub("LIBRARIES").GetString(currentLibrary)
-	}
-	dirs, err := ioutil.ReadDir(path)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, dir := range dirs {
-		if dir.IsDir() {
-			d, err := ioutil.ReadFile(filepath.Join(path, dir.Name(), "entry.yaml"))
-			if err != nil {
-				panic(err)
-			}
-
-			var e scholar.Entry
-			err = yaml.Unmarshal(d, &e)
-			if err != nil {
-				panic(err)
-			}
-
-			fmt.Println(e.Bib())
-			fmt.Println()
-		}
-	}
+	// editCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

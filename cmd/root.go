@@ -27,7 +27,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/cgxeiji/scholar"
+	"github.com/cgxeiji/scholar/scholar"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

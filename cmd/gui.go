@@ -27,7 +27,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cgxeiji/scholar"
+	"github.com/cgxeiji/scholar/scholar"
 	"github.com/jroimartin/gocui"
 	"github.com/spf13/viper"
 )

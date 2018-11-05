@@ -1,107 +1,110 @@
-# Scholar: a CLI Reference Manager
+# Scholar Library
+Go library to generate and manipulate bibliography entries.
 
-Scholar is a terminal based reference manager written in Go, that helps you
-keep track of your resources.  It uses YAML files to save the metadata. Entry
-types and fields are taken from the [BibLaTex
-format](http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/biblatex.pdf).
-It was inspired by [papis](https://github.com/papis/papis), a CLI reference
-manager written in python.
+For the CLI program, click [here](https://github.com/cgxeiji/scholar/).
 
-## Features
+## Usage
 
-Add any file using:
-```
-$ scholar add filename.ext
-```
+Scholar uses a YAML configuration file to load the types of entries to be used.
+The basic structure of the file is as follows:
 
-Specify DOI or search for metadata on the web (currently only support for CrossRef):
-```
-$ scholar add filename.ext --doi=10.1007/978-94-011-6022-3_3
-
-$ scholar add general theory of relativity einstein 1992
-```
-
-Use multiple libraries for different types of entries:
-```
-$ scholar open einstein --library=research
-
-$ scholar add Harry Potter.epub --library=books
+```yaml
+typeName:
+  desc: A brief description of the type.
+  req:
+    field1: A brief description of field1.
+    field2: A brief description of field2.
+    field3: A brief description of field3.
+  opt:
+    field1: A brief description of field1.
+    field2: A brief description of field2.
+    field3: A brief description of field3.
 ```
 
-And much more:
+For example:
+```yaml
+article:
+  desc: An article in a journal, magazine, newspaper, or other periodical which forms a self-contained unit with its own title.
+  req:
+    author: Author(s) of the article.
+    title: Title of the article.
+    journaltitle: Title of the journal.
+    date: YYYY-MM-DD format.
+  opt:
+    editor: Editor(s) of the journal.
+    language: Language of the article.
+    series: Series of the journal.
+    volume: Volume of the journal.
+    number: Number of the journal.
+    issn: ISSN number of the article.
+    doi: DOI code of the article.
+    url: URL of the article.
+    urldate: Access date in YYY-MM-DD format.
+
+book:
+  desc: A single-volume book with one or more authors where the authors share credit for the work as a whole.
+  req:
+    author: Author(s) of the book.
+    title: Title of the book.
+    date: YYYY-MM-DD format.
+  opt:
+    editor: Editor(s) of the book.
+    publisher: Publisher of the book.
+    location: Location of the publisher.
+    language: Language of the book.
+    series: Series of the book.
+    volume: Volume of the book.
+    number: Number of the book.
+    pages: Number of pages is the book.
+    isbn: ISBN number of the book.
+    doi: DOI code of the book.
+    url: URL of the book.
+    urldate: Access date in YYY-MM-DD format.
 ```
-$ scholar help
 
-Scholar: a CLI Reference Manager
+To load the entry types to be used by Scholar, do:
 
-Scholar is a CLI reference manager that keeps track of
-your documents metadata using YAML files with biblatex format.
-
-Usage:
-  scholar [flags]
-  scholar [command]
-
-Available Commands:
-  add         Add a new entry
-  config      Configure Scholar
-  edit        Edit an entry
-  export      Export entries
-  help        Help about any command
-  import      Import a bibtex/biblatex file
-  open        Open an entry
-  remove      Remove an entry
-
-Flags:
-  -h, --help             help for scholar
-  -l, --library string   specify the library
-
-Use "scholar [command] --help" for more information about a command.
+```go
+func main() {
+    if err := scholar.LoadTypes("types.yaml"); err != nil {
+        // handle error
+    }    
+}
 ```
 
-## Installation
-
-If you do not have Go installed, follow this guide:
-
-- [The Go Programming Language: Getting Started](https://golang.org/doc/install)
-
-Then, run:
-```
-go get -d github.com/cgxeiji/scholar/scholar
+To create a new Entry struct, do:
+```go
+    entry := scholar.NewEntry("article")
 ```
 
-Done!
+To change the type of an entry, do:
+```go
+    entryArticle := scholar.NewEntry("article")
+    entryBook := scholar.Convert(entryArticle, "book")
+```
+
+To get a BibLaTex format reference, do:
+```go
+    entry := scholar.NewEntry("article")
+    entry.Required["title"] = "The Article"
+    entry.Required["author'] = "Last, First and Other, Second"
+    entry.Required["journaltitle"] = "The Journal of Articles"
+    entry.Required["date"] = "2018"
+
+    fmt.Println(entry.Bib())
+```
+```
+output:
+    @article{last2018,
+      author = {Last, First and Other, Second},
+      date = {2018},
+      journaltitle = {The Journal of Articles},
+      title = {The Article}
+    }
+```
+
 
 ## TODO
 
-### General
-
-- [ ] Add `-i` flag to enable/disable interactive mode.
-- [ ] Add `interactive: true` settings in the configuration file.
-- [ ] Make attached file path relative to entry, unless is an external file.
-- [ ] Be able to reference a file instead of copying it.
-- [ ] Add support for attaching multiple files.
-
-### Add
-
-- [ ] Add a flag for manual/auto input of metadata.
-
-### Config
-
-- [ ] Add function to create a local configuration file.
-
-### Export
-
-- [ ] Add different export formats.
-
-### Open
-
-- [ ] Add selection menu if multiple files are attached.
-- [ ] Open metadata if no file/url/DOI is attached.
-
-### Remove
-
-- [ ] Add remove confirmation.
-
-## License
-
-MIT
+- [ ] Return an error on `TypeNotFound` for `NewEntry()`
+- [ ] Improve documentation
