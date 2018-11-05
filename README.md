@@ -7,6 +7,9 @@ format](http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/biblatex.pdf).
 It was inspired by [papis](https://github.com/papis/papis), a CLI reference
 manager written in python.
 
+![Scholar
+Demo](https://github.com/cgxeiji/scholar/raw/master/img/scholar_demo.gif)
+
 ## Features
 
 Add any file using:
