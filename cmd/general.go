@@ -225,5 +225,9 @@ func queryEntry(search string) *scholar.Entry {
 		}
 	}
 
+	if entry == nil {
+		fmt.Println("No entries match the query.")
+	}
+
 	return entry
 }
