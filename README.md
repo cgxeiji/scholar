@@ -28,6 +28,13 @@ $ scholar open einstein --library=research
 $ scholar add Harry Potter.epub --library=books
 ```
 
+Export entries to BibLaTex:
+```
+$ scholar export > references.bib
+
+$ scholar export --library=research > research.bib
+```
+
 And much more:
 ```
 $ scholar help
