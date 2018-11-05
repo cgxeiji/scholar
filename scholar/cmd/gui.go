@@ -32,7 +32,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-var helpString = " /: search, space: cite, enter: select, q: quit, ^c: exit "
+var helpString = " /: search, s: sort, space: cite, enter: select, q: quit, ^c: exit "
+var sortby = []string{"title", "author", "date"}
+var sortid = 0
 var showList []*scholar.Entry
 
 func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
@@ -202,6 +204,14 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 		panic(err)
 	}
 
+	if err := g.SetKeybinding("main", 's', gocui.ModNone, func(g *gocui.Gui, v *gocui.View) error {
+		sortid = (sortid + 1) % len(sortby)
+		guiSort(showList, sortby[sortid])
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+
 	if err := g.SetKeybinding("main", '/', gocui.ModNone, toggleSearch); err != nil {
 		panic(err)
 	}
@@ -340,7 +350,7 @@ func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *s
 	<-done
 
 	// TODO: find a better way to share indexed list
-	guiSort(found, "title")
+	guiSort(found, sortby[sortid])
 	showList = found
 
 	return found
