@@ -174,8 +174,7 @@ func requestSearch() string {
 	res, err := prompt.Run()
 
 	if err != nil {
-		fmt.Println("Aborting")
-		os.Exit(1)
+		panic("aborting")
 	}
 
 	return res
@@ -303,7 +302,7 @@ func addDOI(doi string) *scholar.Entry {
 		panic(err)
 	}
 
-	e := scholar.Parse(w)
+	e := parseCrossref(w)
 
 	return e
 }
@@ -361,7 +360,10 @@ func selectType() string {
 }
 
 func add(entryType string) *scholar.Entry {
-	entry := scholar.NewEntry(entryType)
+	entry, err := scholar.NewEntry(entryType)
+	if err != nil {
+		panic(err)
+	}
 
 	reader := bufio.NewReader(os.Stdin)
 	for field := range entry.Required {

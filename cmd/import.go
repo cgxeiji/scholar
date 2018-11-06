@@ -73,7 +73,17 @@ func importParse(filename string) {
 	var es []*scholar.Entry
 
 	for _, entry := range entries {
-		e := scholar.NewEntry(entry["type"])
+		e, err := scholar.NewEntry(entry["type"])
+		if err != nil {
+			if err == scholar.TypeNotFoundError {
+				e, err = scholar.NewEntry("misc")
+				if err != nil {
+					panic(err)
+				}
+			} else {
+				panic(err)
+			}
+		}
 		delete(entry, "type")
 		e.Key = entry["key"]
 		delete(entry, "key")

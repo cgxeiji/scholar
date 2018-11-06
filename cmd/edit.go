@@ -42,7 +42,11 @@ Edit an entry's metadata using the default's text editor.
 				return
 			}
 			if editType != "" {
-				entry = scholar.Convert(entry, editType)
+				var err error
+				entry, err = scholar.Convert(entry, editType)
+				if err != nil {
+					panic(err)
+				}
 				update(entry)
 			}
 			edit(entry)

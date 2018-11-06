@@ -115,8 +115,11 @@ func (e *Entry) GetKey() string {
 // type to the other.
 // If the entry does not exits, it defaults to misc entry.
 // TODO: create a ErrFieldNotFound error
-func Convert(e *Entry, entryType string) *Entry {
-	to := NewEntry(entryType)
+func Convert(e *Entry, entryType string) (*Entry, error) {
+	to, err := NewEntry(entryType)
+	if err != nil {
+		return to, err
+	}
 	to.Key = e.Key
 	to.Attach(e.File)
 
@@ -145,7 +148,7 @@ func Convert(e *Entry, entryType string) *Entry {
 		}
 	}
 
-	return to
+	return to, nil
 }
 
 // Bib returns a string with all the information of the entry

@@ -31,6 +31,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cgxeiji/crossref"
 	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/viper"
 	yaml "gopkg.in/yaml.v2"
@@ -126,7 +127,7 @@ func libraryPath() string {
 				fmt.Println(" ", k)
 				fmt.Println("   ", v)
 			}
-			os.Exit(1)
+			panic("not found: library")
 		}
 
 		return viper.Sub("LIBRARIES").GetString(currentLibrary)
@@ -146,7 +147,7 @@ Add an entry to create this directory or run:
 
 to set the correct path of this library.
 `)
-		os.Exit(1)
+		panic("not found: library path")
 	}
 
 	var wg sync.WaitGroup
@@ -216,18 +217,60 @@ func queryEntry(search string) *scholar.Entry {
 		entry = guiQuery(entryList(), search)
 	} else {
 		found := guiSearch(search, entryList(), searcher)
-		if len(found) == 1 {
+		switch len(found) {
+		case 0:
+			panic("no entries found")
+		case 1:
 			entry = found[0]
-		} else {
-			fmt.Println("Found", len(found), "entries.")
-			fmt.Println("Please, refine your query.")
-			os.Exit(1)
+		default:
+			panic(fmt.Errorf("too many entries (%d) matched\nplease, refine your query", len(found)))
 		}
 	}
 
-	if entry == nil {
-		fmt.Println("No entries match the query.")
+	return entry
+}
+
+func parseCrossref(work *crossref.Work) *scholar.Entry {
+	var e *scholar.Entry
+	var err error
+
+	switch work.Type {
+	case "journal-article":
+		if e, err = scholar.NewEntry("article"); err != nil {
+			panic(err)
+		}
+		e.Required["journaltitle"] = work.BookTitle
+		e.Optional["issn"] = work.ISSN
+	case "proceedings-article":
+		if e, err = scholar.NewEntry("inproceedings"); err != nil {
+			panic(err)
+		}
+		e.Required["booktitle"] = work.BookTitle
+		e.Optional["isbn"] = work.ISBN
+		e.Optional["publisher"] = work.Publisher
+	default:
+		if e, err = scholar.NewEntry("article"); err != nil {
+			panic(err)
+		}
+		e.Required["journaltitle"] = work.BookTitle
 	}
 
-	return entry
+	for _, a := range work.Authors {
+		e.Required["author"] = fmt.Sprintf("%s%s, %s and ", e.Required["author"], a.Last, a.First)
+	}
+	e.Required["author"] = strings.TrimSuffix(e.Required["author"], " and ")
+
+	e.Required["date"] = work.Date
+	e.Required["title"] = work.Title
+
+	for _, a := range work.Editors {
+		e.Optional["editor"] = fmt.Sprintf("%s%s, %s and ", e.Optional["editor"], a.Last, a.First)
+	}
+	e.Optional["editor"] = strings.TrimSuffix(e.Optional["editor"], " and ")
+
+	e.Optional["volume"] = work.Volume
+	e.Optional["number"] = work.Issue
+	e.Optional["doi"] = work.DOI
+
+	return e
 }
