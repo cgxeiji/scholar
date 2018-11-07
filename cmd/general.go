@@ -140,7 +140,7 @@ func entryList() []*scholar.Entry {
 	dirs, err := ioutil.ReadDir(path)
 	if err != nil {
 		fmt.Println(err)
-		fmt.Println(`
+		fmt.Print(`
 Add an entry to create this directory or run:
 
 	scholar config

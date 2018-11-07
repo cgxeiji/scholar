@@ -56,6 +56,8 @@ TODO: if there is no file attached, the entry's metadata file is opened.
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		//guiSearch(strings.Join(args, " "), entryList(), nil)
+
 		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
 			if entry.File != "" {
 				open(filepath.Join(libraryPath(), entry.GetKey(), entry.File))

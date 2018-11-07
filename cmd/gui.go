@@ -29,6 +29,7 @@ import (
 
 	"github.com/cgxeiji/scholar/scholar"
 	"github.com/jroimartin/gocui"
+	"github.com/sahilm/fuzzy"
 	"github.com/spf13/viper"
 )
 
@@ -321,6 +322,46 @@ func guiHideInfo(g *gocui.Gui, v *gocui.View) error {
 		return err
 	}
 	return nil
+}
+
+type searchTerm []*scholar.Entry
+
+func (e searchTerm) String(i int) string {
+	title := strings.Replace(strings.ToLower(e[i].Required["title"]), " ", "", -1)
+	aus := strings.Replace(strings.ToLower(e[i].Required["author"]), " ", "", -1)
+	k := strings.Replace(strings.ToLower(e[i].Key), " ", "", -1)
+	// title := e[i].Required["title"]
+	// aus := e[i].Required["author"]
+	// k := e[i].Key
+	s := fmt.Sprintf("%s%s%s", k, aus, title)
+
+	return s
+}
+
+func (e searchTerm) Len() int {
+	return len(e)
+}
+
+func (e searchTerm) List() []string {
+	s := []string{}
+	for i := range e {
+		s = append(s, e.String(i))
+	}
+
+	return s
+}
+
+// testing fuzzy search
+func guiSearchFuzzy(search string, entries []*scholar.Entry) []*scholar.Entry {
+	var items searchTerm = entries
+	results := fuzzy.FindFrom(strings.Replace(strings.ToLower(strings.TrimSpace(search)), " ", "", -1), items)
+
+	found := []*scholar.Entry{}
+	for _, r := range results {
+		found = append(found, entries[r.Index])
+	}
+	showList = found
+	return found
 }
 
 func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) []*scholar.Entry {
