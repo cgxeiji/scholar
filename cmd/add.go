@@ -63,7 +63,7 @@ TODO: Add a flag for manual/auto input of metadata
 					fmt.Println("Getting metadata from doi")
 					entry = addDOI(doi)
 				} else {
-					if !requestManual("Would you like to search the web for metadata?") {
+					if askYesNo("Would you like to search the web for metadata?") {
 						doi = query(requestSearch())
 					}
 					fmt.Println()
@@ -87,11 +87,11 @@ TODO: Add a flag for manual/auto input of metadata
 			s = strings.TrimSuffix(s, filepath.Ext(s))
 			doi := addDoi
 			if doi == "" {
-				if !requestManual("Would you like to search the web for metadata?") {
+				if askYesNo("Would you like to search the web for metadata?") {
 					doi = query(requestSearch())
 					if doi == "" {
 						fmt.Println()
-						if !requestManual("I could not find anything, can you give me a better search variable?") {
+						if askYesNo("I could not find anything, can you give me a better search variable?") {
 							doi = query(requestSearch())
 						}
 						if doi != "" {
@@ -155,7 +155,7 @@ func init() {
 	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func requestManual(question string) bool {
+func askYesNo(question string) bool {
 	prompt := promptui.Prompt{
 		Label:     question,
 		IsConfirm: true,
@@ -163,7 +163,7 @@ func requestManual(question string) bool {
 
 	res, _ := prompt.Run()
 
-	return !strings.Contains("yesYes", res)
+	return strings.Contains("yesYes", res)
 }
 
 func requestSearch() string {

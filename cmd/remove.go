@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // removeCmd represents the remove command
@@ -35,19 +36,26 @@ var removeCmd = &cobra.Command{
 	Short: "Remove an entry",
 	Long: `Scholar: a CLI Reference Manager
 
-Remove an entry from the library.
-
---------------------------------------------------------------------------------
-TODO: Add remove confirmation
---------------------------------------------------------------------------------
+Remove an entry from the library.  If interactive mode is disabled, the entry
+will be removed without confirmation.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
 			path := filepath.Join(libraryPath(), entry.GetKey())
-			if err := os.RemoveAll(path); err != nil {
-				panic(err)
+			if viper.GetBool("GENERAL.interactive") != viper.GetBool("interactive") {
+				if askYesNo(fmt.Sprintf("Do you want to remove %s?", path)) {
+					if err := os.RemoveAll(path); err != nil {
+						panic(err)
+					}
+					fmt.Println("Removed", path)
+				}
+			} else {
+				path := filepath.Join(libraryPath(), entry.GetKey())
+				if err := os.RemoveAll(path); err != nil {
+					panic(err)
+				}
+				fmt.Println("Removed", path)
 			}
-			fmt.Println("Removed", path)
 		}
 	},
 }

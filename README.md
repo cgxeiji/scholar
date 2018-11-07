@@ -93,7 +93,7 @@ file.
 
 When interactive mode is disabled, Scholar will return an `exit status 1` and
 the number of entries found if there is more than one entry that matches the
-query.
+query. Also, `remove` will delete the entry without confirmation.
 
 ## TODO
 
@@ -125,7 +125,7 @@ query.
 
 ### Remove
 
-- [ ] Add remove confirmation.
+- [x] Add remove confirmation.
 
 ## License
 
