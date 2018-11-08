@@ -171,7 +171,8 @@ to set the correct path of this library.
 			if dir.IsDir() {
 				d, err := ioutil.ReadFile(filepath.Join(path, dir.Name(), "entry.yaml"))
 				if err != nil {
-					panic(err)
+					fmt.Println("Could not find data for:", dir.Name())
+					return
 				}
 				var e scholar.Entry
 				if err := yaml.Unmarshal(d, &e); err != nil {

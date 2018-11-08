@@ -97,7 +97,8 @@ func entryFromKey(key string) *scholar.Entry {
 		if dir.IsDir() && dir.Name() == strings.TrimSpace(key) {
 			d, err := ioutil.ReadFile(filepath.Join(libraryPath(), dir.Name(), "entry.yaml"))
 			if err != nil {
-				panic(err)
+				fmt.Println("Could not find data for:", dir.Name())
+				continue
 			}
 
 			var e scholar.Entry
