@@ -57,15 +57,7 @@ TODO: if there is no file attached, the entry's metadata file is opened.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
-			if entry.File != "" {
-				open(filepath.Join(libraryPath(), entry.GetKey(), entry.File))
-			} else if url, ok := entry.Optional["url"]; ok && url != "" {
-				open(url)
-			} else if url, ok := entry.Required["url"]; ok && url != "" {
-				open(url)
-			} else if doi, ok := entry.Optional["doi"]; ok && doi != "" {
-				open(fmt.Sprintf("https://dx.doi.org/%s", doi))
-			} else {
+			if err := openEntry(entry); err != nil {
 				fmt.Println("No file, doi, or url associated with entry.")
 				os.Exit(1)
 			}
@@ -85,6 +77,22 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// openCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func openEntry(entry *scholar.Entry) error {
+	if entry.File != "" {
+		open(filepath.Join(libraryPath(), entry.GetKey(), entry.File))
+	} else if url, ok := entry.Optional["url"]; ok && url != "" {
+		open(url)
+	} else if url, ok := entry.Required["url"]; ok && url != "" {
+		open(url)
+	} else if doi, ok := entry.Optional["doi"]; ok && doi != "" {
+		open(fmt.Sprintf("https://dx.doi.org/%s", doi))
+	} else {
+		return fmt.Errorf("could not open entry")
+	}
+
+	return nil
 }
 
 func entryFromKey(key string) *scholar.Entry {
