@@ -239,12 +239,36 @@ thesis:
     url: URL of the thesis.
     urldate: Access date in YYY-MM-DD format.
 
+manual:
+  desc: Technical or other documentation, not necessarily in printed form.
+  req:
+    author: Author(s) of the manual.
+    title: Title of the manual.
+    date: YYYY-MM-DD format.
+  opt:
+    language: Language of the manual.
+    editor: Editor(s) of the manual.
+    publisher: Publisher of the manual.
+    organization: Organization in charge of the manual.
+    series: Series of the manual.
+    number: Number of the manual.
+    isbn: ISBN number of the manual.
+    chapter: Chapter where the manual is located.
+    pages: Range of pages where the manual is located.
+    pagetotal: Total number of pages of the manual.
+    location: Location where the manual was published.
+    isbn: ISBN number of the manual.
+    note: Notes regarding the manual.
+    doi: DOI code of the manual.
+    url: URL of the manual.
+    urldate: Access date in YYY-MM-DD format.
+
 misc:
   desc: A fallback for entries which do not fit into any other category.
   req:
     author: Author(s) of the work.
     title: Title of the work.
-    date: YYY-MM-DD format.
+    date: YYYY-MM-DD format.
   opt:
     howpublished: Supply publishing information in free format.
     type: Specify the type of work.
