@@ -99,7 +99,7 @@ article:
     issn: ISSN number of the article.
     doi: DOI code of the article.
     url: URL of the article.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 book:
   desc: A single-volume book with one or more authors where the authors share credit for the work as a whole.
@@ -119,7 +119,7 @@ book:
     isbn: ISBN number of the book.
     doi: DOI code of the book.
     url: URL of the book.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 mvbook:
   desc: A multi-volume @book.
@@ -139,7 +139,7 @@ mvbook:
     isbn: ISBN number of the book.
     doi: DOI code of the book.
     url: URL of the book.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 inbook:
   desc: A part of a book which forms a self-contained unit with its own title.
@@ -161,7 +161,7 @@ inbook:
     isbn: ISBN number of the book.
     doi: DOI code of the book.
     url: URL of the book.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 collection:
   desc: A single-volume collection with multiple, self-contained contributions by distinct authors which have their own title. The work as a whole has no overall author but it will usually have an editor.
@@ -180,7 +180,7 @@ collection:
     isbn: ISBN number of the collection.
     doi: DOI code of the collection.
     url: URL of the collection.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 inproceedings:
   desc: An article in a conference proceedings.
@@ -201,7 +201,7 @@ inproceedings:
     isbn: ISBN number of the article.
     doi: DOI code of the article.
     url: URL of the article.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 report:
   desc: A technical report, research report, or white paper published by a university or some other institution.
@@ -218,7 +218,7 @@ report:
     isrn: ISRN number of the report.
     doi: DOI code of the report.
     url: URL of the report.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 thesis:
   desc: A thesis written for an educational institution to satisfy the requirements for a degree.
@@ -237,7 +237,7 @@ thesis:
     isbn: ISBN number of the thesis.
     doi: DOI code of the thesis.
     url: URL of the thesis.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 manual:
   desc: Technical or other documentation, not necessarily in printed form.
@@ -261,7 +261,7 @@ manual:
     note: Notes regarding the manual.
     doi: DOI code of the manual.
     url: URL of the manual.
-    urldate: Access date in YYY-MM-DD format.
+    urldate: Access date in YYYY-MM-DD format.
 
 misc:
   desc: A fallback for entries which do not fit into any other category.
@@ -273,7 +273,7 @@ misc:
     howpublished: Supply publishing information in free format.
     type: Specify the type of work.
     url: URL of the work.
-    urldate: Access date in YYY-MM-DD work.
+    urldate: Access date in YYYY-MM-DD format.
 
 online:
   desc: An online resource. This entry type is intended for sources such as web sites. Note that all entry types suppert the url field.
@@ -287,5 +287,22 @@ online:
     version: Version of the resource.
     note: Notes regarding the resource.
     organization: Organization associated with the resource.
-    urldate: Access date in YYY-MM-DD work.
+    urldate: Access date in YYYY-MM-DD format.
+
+patent:
+  desc: A patent or patent request.
+  req:
+    author: Author(s) of the patent.
+    title: Title of the patent.
+    number: The number or record token of the patent.
+    date: YYYY-MM-DD format.
+  opt:
+    holder: Holder of the patent.
+    type: Type of patent.
+    version: Version of the patent.
+    location: Location of the patent.
+    note: Notes regarding the patent.
+    doi: DOI code of the patent.
+    url: URL of the patent.
+    urldate: Access date in YYYY-MM-DD format.
 `)
