@@ -43,8 +43,6 @@ var rootCmd = &cobra.Command{
 
 Scholar is a CLI reference manager that keeps track of
 your documents metadata using YAML files with biblatex format.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(os.Args[1:]) == 0 {
 			cmd.Help()
@@ -71,11 +69,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-	//rootCmd.PersistentFlags().StringVar(&confFile, "config", "", "config file (default $HOME/.config/scholar/config.yaml)")
-	//rootCmd.PersistentFlags().StringVar(&typesFile, "types", "", "entry types file (default $HOME/.config/scholar/types.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&currentLibrary, "library", "l", "", "specify the library")
 	rootCmd.PersistentFlags().BoolP("interactive", "i", false, "toggle interactive mode (enabled by default)")
 	viper.BindPFlag("interactive", rootCmd.PersistentFlags().Lookup("interactive"))
@@ -93,7 +86,9 @@ func initConfig() {
 		viper.AddConfigPath("$HOME/.config/scholar")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	// Check if there are configuration files
+	viper.AutomaticEnv()
+
 	// Set default values
 	viper.SetDefault("GENERAL.interactive", true)
 	viper.SetDefault("GENERAL.editor", "vi")

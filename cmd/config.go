@@ -58,30 +58,16 @@ TODO: add option to create a local configuration
 
 func init() {
 	rootCmd.AddCommand(configCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// configCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// configCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func configure() {
-	//if confFile != "" && confFile != "which" {
-	// Use config file from the flag.
-	//viper.SetConfigFile(confFile)
-	//} else {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("$HOME/.config/scholar")
-	//}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	// Check if there are configuration files
+	viper.AutomaticEnv()
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil {
