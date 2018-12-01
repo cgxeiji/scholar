@@ -54,6 +54,8 @@ func edit(entry *scholar.Entry) {
 	}
 
 	yaml.Unmarshal(d, &entry)
+
+	checkDirKey(libraryPath(), key, entry)
 }
 
 func update(entry *scholar.Entry) {
