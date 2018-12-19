@@ -66,13 +66,17 @@ TODO: Add a flag for manual/auto input of metadata
 					if askYesNo("Would you like to search the web for metadata?") {
 						doi = query(requestSearch())
 					}
-					fmt.Println()
-					fmt.Println("Adding the entry manually...")
-					fmt.Println("What kind of entry is it?")
-					t := selectType()
-					fmt.Println()
-					fmt.Println("Please, add the required fields:")
-					entry = add(t)
+					if doi != "" {
+						entry = addDOI(doi)
+					} else {
+						fmt.Println()
+						fmt.Println("Adding the entry manually...")
+						fmt.Println("What kind of entry is it?")
+						t := selectType()
+						fmt.Println()
+						fmt.Println("Please, add the required fields:")
+						entry = add(t)
+					}
 				}
 				commit(entry)
 				edit(entry)

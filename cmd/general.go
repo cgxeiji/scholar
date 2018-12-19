@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -263,7 +264,7 @@ func parseCrossref(work *crossref.Work) *scholar.Entry {
 	}
 	e.Required["author"] = strings.TrimSuffix(e.Required["author"], " and ")
 
-	e.Required["date"] = work.Date
+	e.Required["date"] = formatDate(work.Date)
 	e.Required["title"] = work.Title
 
 	for _, a := range work.Editors {
@@ -272,8 +273,27 @@ func parseCrossref(work *crossref.Work) *scholar.Entry {
 	e.Optional["editor"] = strings.TrimSuffix(e.Optional["editor"], " and ")
 
 	e.Optional["volume"] = work.Volume
+	e.Optional["pages"] = work.Pages
 	e.Optional["number"] = work.Issue
 	e.Optional["doi"] = work.DOI
 
 	return e
+}
+
+func formatDate(date string) string {
+	parts := strings.Split(date, "-")
+	for i := range parts {
+		fixed := ""
+		p, err := strconv.Atoi(parts[i])
+		if err != nil {
+			panic(err)
+		}
+		if p < 10 {
+			fixed += "0"
+		}
+		fixed += strconv.Itoa(p)
+		parts[i] = fixed
+	}
+
+	return strings.Join(parts, "-")
 }
