@@ -138,6 +138,10 @@ func libraryPath() string {
 	return viper.Sub("LIBRARIES").GetString(viper.GetString("GENERAL.default"))
 }
 
+func isInteractive() bool {
+	return viper.GetBool("GENERAL.interactive") != viper.GetBool("interactive")
+}
+
 func entryList() []*scholar.Entry {
 	path := libraryPath()
 	dirs, err := ioutil.ReadDir(path)

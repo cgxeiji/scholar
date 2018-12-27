@@ -53,12 +53,10 @@ TODO: Add a flag for manual/auto input of metadata
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var entry *scholar.Entry
-		var err error
-		var file string
 		doi := doiFlag
 
 		input := strings.Join(args, " ")
-		file, err = homedir.Expand(input)
+		file, err := homedir.Expand(input)
 		if err != nil {
 			panic(err)
 		}
@@ -88,7 +86,9 @@ TODO: Add a flag for manual/auto input of metadata
 			info.println("attaching:", file)
 			attach(entry, file)
 		}
-		edit(entry)
+		if isInteractive() {
+			edit(entry)
+		}
 
 		info.println()
 		info.println(entry.Bib())
@@ -105,6 +105,9 @@ func init() {
 }
 
 func askYesNo(question string) bool {
+	if !isInteractive() {
+		return false
+	}
 	prompt := promptui.Prompt{
 		Label:     question,
 		IsConfirm: true,
@@ -112,7 +115,7 @@ func askYesNo(question string) bool {
 
 	res, _ := prompt.Run()
 	if res == "" {
-		os.Exit(1)
+		panic("no metadata found")
 	}
 
 	return strings.Contains("yesYes", res)
@@ -161,7 +164,7 @@ func commit(entry *scholar.Entry) {
 
 	file := filepath.Join(saveTo, "entry.yaml")
 	ioutil.WriteFile(file, d, 0644)
-	fmt.Println("  ..", file)
+	info.println("  ..", file)
 }
 
 func query(search string) string {
@@ -332,12 +335,12 @@ func attach(entry *scholar.Entry, file string) {
 	saveTo := filepath.Join(libraryPath(), key)
 
 	src, err := os.Open(file)
+	defer src.Close()
 	if err != nil {
 		fmt.Println("Attempted to:")
 		fmt.Println(" ", err)
 		return
 	}
-	defer src.Close()
 
 	filename := fmt.Sprintf("%s_%.40s%s", key, clean(entry.Required["title"]), filepath.Ext(file))
 
@@ -353,7 +356,7 @@ func attach(entry *scholar.Entry, file string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Copied", b, "bytes to", path)
+	info.println("Copied", b, "bytes to", path)
 	// horrible placeholder
 	entry.Attach(filename)
 
@@ -361,6 +364,9 @@ func attach(entry *scholar.Entry, file string) {
 }
 
 func manual() *scholar.Entry {
+	if !isInteractive() {
+		panic("no metadata found")
+	}
 	info.println("Adding the entry manually...")
 	info.println("Select the type of entry:")
 	t := selectType()

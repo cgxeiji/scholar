@@ -107,8 +107,8 @@ query. Also, `remove` will delete the entry without confirmation.
 
 ### Add
 
-- [ ] Add a flag for manual/auto input of metadata.
-- [ ] Handle non-interactive mode for add.
+- [x] Add a flag for manual/auto input of metadata.
+- [x] Handle non-interactive mode for add.
 
 ### Config
 

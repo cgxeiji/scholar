@@ -46,3 +46,12 @@ func (s *speaker) println(a ...interface{}) (n int, err error) {
 	}
 	return fmt.Fprintln(s.w, a...)
 }
+
+func (s *speaker) setLevel(n int) {
+	s.level = n
+}
+
+func (s *speaker) error(a ...interface{}) (n int, err error) {
+	fmt.Fprintf(os.Stderr, "error: ")
+	return fmt.Fprintln(os.Stderr, a...)
+}

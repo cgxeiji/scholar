@@ -56,13 +56,12 @@ your documents metadata using YAML files with biblatex format.`,
 func Execute() {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("error:", r)
+			info.error(r)
 			os.Exit(1)
 		}
 	}()
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		panic(err)
 	}
 }
 
@@ -172,5 +171,9 @@ func initConfig() {
 	err := scholar.LoadTypes(et.ConfigFileUsed())
 	if err != nil {
 		panic(err)
+	}
+
+	if !isInteractive() {
+		info.setLevel(0)
 	}
 }
