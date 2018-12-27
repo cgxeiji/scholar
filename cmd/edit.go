@@ -37,8 +37,8 @@ Edit an entry's metadata using the default's text editor.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
-			if addAttach != "" {
-				attach(entry, addAttach)
+			if attachFlag != "" {
+				attach(entry, attachFlag)
 				return
 			}
 			if editType != "" {
@@ -61,6 +61,6 @@ var editType string
 func init() {
 	rootCmd.AddCommand(editCmd)
 
-	editCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
+	editCmd.Flags().StringVarP(&attachFlag, "attach", "a", "", "attach a file to the entry")
 	editCmd.Flags().StringVarP(&editType, "type", "t", "", "change the type of the entry")
 }

@@ -65,6 +65,15 @@ TODO: Add a flag for manual/auto input of metadata
 		} else {
 			input = ""
 		}
+		if attachFlag != "" {
+			file, err = homedir.Expand(attachFlag)
+			if err != nil {
+				panic(err)
+			}
+			if _, err := os.Stat(file); os.IsNotExist(err) {
+				panic(fmt.Sprint("file '", file, "' not found"))
+			}
+		}
 
 		if doi == "" {
 			if input == "" {
@@ -95,13 +104,13 @@ TODO: Add a flag for manual/auto input of metadata
 	},
 }
 
-var doiFlag, addAttach string
+var doiFlag, attachFlag string
 
 func init() {
 	rootCmd.AddCommand(addCmd)
 
 	addCmd.Flags().StringVarP(&doiFlag, "doi", "d", "", "Specify the DOI to retrieve metadata")
-	addCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
+	addCmd.Flags().StringVarP(&attachFlag, "attach", "a", "", "attach a file to the entry")
 }
 
 func askYesNo(question string) bool {
@@ -168,7 +177,7 @@ func commit(entry *scholar.Entry) {
 }
 
 func query(search string) string {
-	fmt.Println("Searching metadata for:", search)
+	info.println("Searching metadata for:", search)
 
 	client := crossref.NewClient("Scholar", viper.GetString("GENERAL.mailto"))
 
@@ -189,7 +198,7 @@ func query(search string) string {
 
 	switch len(ws) {
 	case 0:
-		fmt.Println("Nothing found...")
+		info.println("Nothing found...")
 		return ""
 	case 1:
 		return ws[0].DOI
