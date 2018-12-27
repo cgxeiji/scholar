@@ -50,6 +50,8 @@ Edit an entry's metadata using the default's text editor.
 				update(entry)
 			}
 			edit(entry)
+		} else {
+			panic("entry not found")
 		}
 	},
 }

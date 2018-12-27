@@ -23,7 +23,6 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -66,9 +65,10 @@ TODO: if there is no file attached, the entry's metadata file is opened.
 			} else if doi, ok := entry.Optional["doi"]; ok && doi != "" {
 				open(fmt.Sprintf("https://dx.doi.org/%s", doi))
 			} else {
-				fmt.Println("No file, doi, or url associated with entry.")
-				os.Exit(1)
+				panic("no file, doi, or url associated with entry")
 			}
+		} else {
+			panic("entry not found")
 		}
 	},
 }
