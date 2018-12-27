@@ -53,99 +53,54 @@ TODO: Add a flag for manual/auto input of metadata
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var entry *scholar.Entry
+		var err error
+		var file string
+		doi := doiFlag
 
-		search := strings.Join(args, " ")
-		file, _ := homedir.Expand(search)
+		input := strings.Join(args, " ")
+		file, err = homedir.Expand(input)
+		if err != nil {
+			panic(err)
+		}
 		if _, err := os.Stat(file); os.IsNotExist(err) {
-			if search == "" {
-				doi := addDoi
-				if doi != "" {
-					fmt.Println("Getting metadata from doi")
-					entry = addDOI(doi)
-				} else {
-					if askYesNo("Would you like to search the web for metadata?") {
-						doi = query(requestSearch())
-					}
-					if doi != "" {
-						entry = addDOI(doi)
-					} else {
-						fmt.Println()
-						fmt.Println("Adding the entry manually...")
-						fmt.Println("What kind of entry is it?")
-						t := selectType()
-						fmt.Println()
-						fmt.Println("Please, add the required fields:")
-						entry = add(t)
-					}
-				}
-				commit(entry)
-				edit(entry)
-			} else if doi := query(search); doi != "" {
-				entry = addDOI(doi)
-				commit(entry)
-				edit(entry)
-			}
+			file = ""
 		} else {
-			fmt.Println("file:", file)
-			s := filepath.Base(file)
-			s = strings.TrimSuffix(s, filepath.Ext(s))
-			doi := addDoi
-			if doi == "" {
-				if askYesNo("Would you like to search the web for metadata?") {
-					doi = query(requestSearch())
-					if doi == "" {
-						fmt.Println()
-						if askYesNo("I could not find anything, can you give me a better search variable?") {
-							doi = query(requestSearch())
-						}
-						if doi != "" {
-							fmt.Println("Getting metadata from doi")
-							entry = addDOI(doi)
-						} else {
-							fmt.Println()
-							fmt.Println("Adding the entry manually...")
-							fmt.Println("What kind of entry is it?")
-							t := selectType()
-							fmt.Println()
-							fmt.Println("Please, add the required fields:")
-							entry = add(t)
-						}
-
-					} else {
-						fmt.Println("Getting metadata from doi")
-						entry = addDOI(doi)
-					}
-
-				} else {
-					fmt.Println()
-					fmt.Println("Adding the entry manually...")
-					fmt.Println("What kind of entry is it?")
-					t := selectType()
-					fmt.Println()
-					fmt.Println("Please, add the required fields:")
-					entry = add(t)
-				}
-			} else {
-				fmt.Println("Getting metadata from doi")
-				entry = addDOI(doi)
-			}
-
-			commit(entry)
-			attach(entry, file)
-			edit(entry)
+			input = ""
 		}
 
-		fmt.Println()
-		fmt.Println(entry.Bib())
+		if doi == "" {
+			if input == "" {
+				if askYesNo("Would you like to search the web for metadata?") {
+					doi = query(requestSearch())
+				}
+			} else {
+				doi = query(input)
+			}
+		}
+		if doi == "" {
+			entry = manual()
+		} else {
+			entry = addDOI(doi)
+		}
+
+		commit(entry)
+		if file != "" {
+			info.println("attaching:", file)
+			attach(entry, file)
+		}
+		edit(entry)
+
+		info.println()
+		info.println(entry.Bib())
 	},
 }
 
-var addDoi, addAttach string
+var doiFlag, addAttach string
 
 func init() {
 	rootCmd.AddCommand(addCmd)
 
-	addCmd.Flags().StringVarP(&addDoi, "doi", "d", "", "Specify the DOI to retrieve metadata")
+	addCmd.Flags().StringVarP(&doiFlag, "doi", "d", "", "Specify the DOI to retrieve metadata")
 	addCmd.Flags().StringVarP(&addAttach, "attach", "a", "", "attach a file to the entry")
 }
 
@@ -156,6 +111,9 @@ func askYesNo(question string) bool {
 	}
 
 	res, _ := prompt.Run()
+	if res == "" {
+		os.Exit(1)
+	}
 
 	return strings.Contains("yesYes", res)
 }
@@ -281,7 +239,6 @@ func query(search string) string {
 	i, _, err := prompt.Run()
 
 	if err != nil {
-		fmt.Println("Aborting")
 		os.Exit(1)
 	}
 
@@ -401,4 +358,12 @@ func attach(entry *scholar.Entry, file string) {
 	entry.Attach(filename)
 
 	update(entry)
+}
+
+func manual() *scholar.Entry {
+	info.println("Adding the entry manually...")
+	info.println("Select the type of entry:")
+	t := selectType()
+	info.println("Required fields:")
+	return add(t)
 }
