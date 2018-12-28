@@ -91,7 +91,10 @@ Add a new entry to a library.
 			entry = manual()
 		} else {
 			info.println("Extracting metadata from:", doi)
-			entry = addDOI(doi)
+			if entry, err = fetchDOI(doi); err != nil {
+				info.println("Could not get metadata from:", doi)
+				entry = manual()
+			}
 		}
 
 		commit(entry)
@@ -300,17 +303,17 @@ func query(search string) string {
 	return works[i].DOI
 }
 
-func addDOI(doi string) *scholar.Entry {
+func fetchDOI(doi string) (*scholar.Entry, error) {
 	client := crossref.NewClient("Scholar", viper.GetString("GENERAL.mailto"))
 
 	w, err := client.Works(doi)
 	if err != nil {
-		panic(err)
+		return &scholar.Entry{}, err
 	}
 
 	e := parseCrossref(w)
 
-	return e
+	return e, nil
 }
 
 func selectType() string {
