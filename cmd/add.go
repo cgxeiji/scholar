@@ -22,10 +22,12 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -46,10 +48,6 @@ var addCmd = &cobra.Command{
 	Long: `Scholar: a CLI Reference Manager
 
 Add a new entry to a library.
-
---------------------------------------------------------------------------------
-TODO: Add a flag for manual/auto input of metadata
---------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var entry *scholar.Entry
@@ -77,8 +75,13 @@ TODO: Add a flag for manual/auto input of metadata
 
 		if doi == "" {
 			if input == "" {
-				if askYesNo("Would you like to search the web for metadata?") {
-					doi = query(requestSearch())
+				if file != "" {
+					if doi = doiFromPDF(file); doi == "" {
+						if askYesNo("Would you like to search the web for metadata?") {
+							doi = query(requestSearch())
+						}
+					}
+
 				}
 			} else {
 				doi = query(input)
@@ -87,12 +90,13 @@ TODO: Add a flag for manual/auto input of metadata
 		if doi == "" {
 			entry = manual()
 		} else {
+			info.println("Extracting metadata from:", doi)
 			entry = addDOI(doi)
 		}
 
 		commit(entry)
 		if file != "" {
-			info.println("attaching:", file)
+			info.println("  .. attaching:", file)
 			attach(entry, file)
 		}
 		if isInteractive() {
@@ -173,7 +177,46 @@ func commit(entry *scholar.Entry) {
 
 	file := filepath.Join(saveTo, "entry.yaml")
 	ioutil.WriteFile(file, d, 0644)
-	info.println("  ..", file)
+	info.println("  .. entry at:", file)
+}
+
+func doiFromPDF(file string) string {
+	doi := ""
+	if filepath.Ext(file) != ".pdf" {
+		return doi
+	}
+	if !cmdExists("pdftotext") {
+		return doi
+	}
+	cmd := exec.Command("pdftotext", file, "-")
+	text, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+	r := bytes.NewBuffer(text)
+	for {
+		txt, err := r.ReadString('\n')
+		if err != nil {
+			break
+		}
+		if strings.Contains(txt, "doi") && strings.Contains(txt, "10.") {
+			index := strings.IndexRune(txt, '1')
+			if index != -1 {
+				doi = strings.TrimSpace(txt[index:])
+				break
+			}
+		}
+	}
+
+	return doi
+}
+
+func cmdExists(cmd string) bool {
+	c := exec.Command(cmd, "-h")
+	if err := c.Run(); err != nil {
+		return false
+	}
+	return true
 }
 
 func query(search string) string {
@@ -365,7 +408,7 @@ func attach(entry *scholar.Entry, file string) {
 	if err != nil {
 		panic(err)
 	}
-	info.println("Copied", b, "bytes to", path)
+	info.println("     └─ copied", b, "bytes to:", path)
 	// horrible placeholder
 	entry.Attach(filename)
 
