@@ -77,7 +77,7 @@ If you do not have Go installed, follow this guide:
 
 Then, run:
 ```
-go get -d github.com/cgxeiji/scholar
+go get -u github.com/cgxeiji/scholar
 ```
 
 Done!
