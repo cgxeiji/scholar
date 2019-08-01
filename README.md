@@ -56,6 +56,7 @@ Available Commands:
   config      Configure Scholar
   edit        Edit an entry
   export      Export entries
+  fetch       Prints the file path of the entry
   help        Help about any command
   import      Import a bibtex/biblatex file
   open        Open an entry
@@ -84,8 +85,8 @@ Done!
 
 ## Interactive Mode
 
-By default, Scholar will launch a selection screen when `edit`, `open`, or
-`remove` commands have a query with more than one entry.
+By default, Scholar will launch a selection screen when `edit`, `open`,
+`fetch`, or `remove` commands have a query with more than one entry.
 
 If you want to use Scholar inside a script, you can disable interactive mode by
 passing the flag `-i`, or setting `interactive: false` in the configuration
@@ -102,6 +103,7 @@ query. Also, `remove` will delete the entry without confirmation.
 - [x] Add `-i` flag to enable/disable interactive mode.
 - [x] Add `interactive: true` settings in the configuration file.
 - [x] Make attached file path relative to entry, ~unless is an external file~.
+- [x] Be able to copy the file path to stdout.
 - [ ] Be able to reference a file instead of copying it.
 - [ ] Add support for attaching multiple files.
 
