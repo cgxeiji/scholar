@@ -152,8 +152,8 @@ Add an entry to create this directory or run:
 
 	scholar config
 
-to set the correct path of this library.
-`)
+to set the correct path of this library.`,
+		)
 		panic("not found: library path")
 	}
 

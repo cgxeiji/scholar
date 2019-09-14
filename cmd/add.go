@@ -229,7 +229,17 @@ func query(search string) string {
 
 	ws, err := client.Query(search)
 	if err != nil {
+		if err == crossref.ErrZeroWorks ||
+			err == crossref.ErrEmptyQuery {
+			info.println("Nothing found...")
+			return ""
+		}
+
 		panic(err)
+	}
+
+	if len(ws) == 1 {
+		return ws[0].DOI
 	}
 
 	type work struct {
@@ -241,14 +251,6 @@ func query(search string) string {
 	}
 
 	works := []work{}
-
-	switch len(ws) {
-	case 0:
-		info.println("Nothing found...")
-		return ""
-	case 1:
-		return ws[0].DOI
-	}
 
 	for _, v := range ws {
 		works = append(works, work{
@@ -306,7 +308,7 @@ func query(search string) string {
 func fetchDOI(doi string) (*scholar.Entry, error) {
 	client := crossref.NewClient("Scholar", viper.GetString("GENERAL.mailto"))
 
-	w, err := client.Works(doi)
+	w, err := client.DOI(doi)
 	if err != nil {
 		return &scholar.Entry{}, err
 	}
