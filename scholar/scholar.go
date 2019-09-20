@@ -1,13 +1,16 @@
 package scholar
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"sort"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
+// EntryTypes holds the list of all entry types loaded.
 var EntryTypes map[string]*EntryType
 
 // LoadTypes loads the configuration file for entry types and associated
@@ -17,8 +20,11 @@ func LoadTypes(file string) error {
 	if err != nil {
 		return err
 	}
+	return loadTypes(d)
+}
 
-	err = yaml.Unmarshal(d, &EntryTypes)
+func loadTypes(b []byte) error {
+	err := yaml.Unmarshal(b, &EntryTypes)
 	if err != nil {
 		return err
 	}
@@ -30,19 +36,36 @@ func LoadTypes(file string) error {
 	return nil
 }
 
-// TypesInfo shows the information of each entry type. level indicates how much
-// information to show (0 = only labels, 1 = labels and required fields, 2 =
-// labels, required fields, and optional fields.)
+// TypesInfo shows the information of each entry type. The level indicates how
+// much information to show (0 = only labels, 1 = labels and required fields, 2
+// = labels, required fields, and optional fields.)
 func TypesInfo(level int) {
-	var eNames []string
+	fmt.Print(typesInfo(0))
+}
+
+// FTypesInfo writes the information of each entry type to the io.Writer w. The
+// level indicates how much information to show (0 = only labels, 1 = labels
+// and required fields, 2 = labels, required fields, and optional fields.)
+func FTypesInfo(w io.Writer, level int) {
+	fmt.Fprint(w, typesInfo(level))
+}
+
+func typesInfo(level int) string {
+	b := new(bytes.Buffer)
+	eNames := make([]string, len(EntryTypes))
+	i := 0
 	for name := range EntryTypes {
-		eNames = append(eNames, name)
+		eNames[i] = name
+		i++
 	}
 	sort.Strings(eNames)
 	for _, name := range eNames {
-		EntryTypes[name].info(level)
-		fmt.Println()
+		s := EntryTypes[name].info(level)
+		b.WriteString(s)
+		b.WriteString("\n")
 	}
+
+	return b.String()
 }
 
 // NewEntry returns an empty copy of an entry according to the types of entries
@@ -53,6 +76,14 @@ func NewEntry(label string) (*Entry, error) {
 		return entryType.get(), nil
 	}
 	// Otherwise, send a type not found error
-	TypeNotFoundError = &tnfError{label}
-	return nil, TypeNotFoundError
+	keys := make([]string, len(EntryTypes))
+	i := 0
+	for k := range EntryTypes {
+		keys[i] = k
+		i++
+	}
+
+	return nil,
+		getError("NewEntry", ErrTypeNotFound, nil).
+			info(fmt.Sprintf("%q is not a valid entry type, available types: %q", label, keys))
 }

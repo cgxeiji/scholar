@@ -1,7 +1,9 @@
 package scholar
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"sort"
 	"strings"
 	"time"
@@ -33,30 +35,43 @@ func (e *EntryType) get() *Entry {
 	return &c
 }
 
-func (e *EntryType) info(level int) {
-	fmt.Println(e.Type, ":", e.Description)
+func (e *EntryType) info(level int) string {
+	b := new(bytes.Buffer)
+
+	b.WriteString(fmt.Sprintf("%s: %s\n", e.Type, e.Description))
 
 	if level > 0 {
-		var fields []string
-		for f := range e.Required {
-			fields = append(fields, f)
+		fields := make([]string, len(e.Required))
+		i := 0
+		for field := range e.Required {
+			fields[i] = field
+			i++
 		}
 		sort.Strings(fields)
 		for _, field := range fields {
-			fmt.Println("  ", field, "->", e.Required[field])
+			b.WriteString(fmt.Sprintf("  %s -> %s\n", field, e.Required[field]))
 		}
 
 		if level > 1 {
-			fields = nil
-			for f := range e.Optional {
-				fields = append(fields, f)
+			fields := make([]string, len(e.Optional))
+			i := 0
+			for field := range e.Optional {
+				fields[i] = field
+				i++
 			}
 			sort.Strings(fields)
 			for _, field := range fields {
-				fmt.Printf("     (%v) -> %v\n", field, e.Optional[field])
+				b.WriteString(fmt.Sprintf("     (%v) -> %v\n", field, e.Optional[field]))
 			}
 		}
 	}
+
+	return b.String()
+}
+
+// String implements the Stringer interface.
+func (e *EntryType) String() string {
+	return fmt.Sprintf("%q (req: %d, opt: %d)", e.Type, len(e.Required), len(e.Optional))
 }
 
 // Entry is the basic object of scholar.
@@ -111,78 +126,146 @@ func (e *Entry) GetKey() string {
 	return e.Key
 }
 
-// Convert changes the type of an entry, parsing all the fields from one
-// type to the other.
-// If the entry does not exits, it defaults to misc entry.
-// TODO: create a ErrFieldNotFound error
+// Convert changes the type of an entry, parsing all the fields from one type
+// to the other.
+//
+// If the entry type does not exits, it returns with an ErrTypeNotFound error.
+// If a required field from the output entry type cannot be found on the
+// original entry, the Required field is replaced by an empty string and
+// Convert keeps parsing the entry. An ErrFieldNotFound error is raised as a
+// result, but it is safe to ignore ErrFieldNotFound.
+//
+// Any field that was Required in the original entry, but it is not on the
+// output entry type, is converted to an Optional field. This ensures back and
+// forth conversion of the same entry without losing information.
 func Convert(e *Entry, entryType string) (*Entry, error) {
 	to, err := NewEntry(entryType)
 	if err != nil {
-		return to, err
+		return to, getError("Convert", ErrTypeNotFound, err)
 	}
 	to.Key = e.Key
 	to.Attach(e.File)
+
+	seen := make(map[string]bool)
+	var convertError error
 
 	// Check for the new required fields in the required and
 	// optional fields of the old entry
 	for field := range to.Required {
 		if value, ok := e.Required[field]; ok {
 			to.Required[field] = value
-			delete(e.Required, field)
 		} else if value, ok := e.Optional[field]; ok {
 			to.Required[field] = value
-			delete(e.Optional, field)
+		} else {
+			convertError = getError("Convert", ErrFieldNotFound, convertError).
+				info(fmt.Sprintf("required field %s[%s] was not found in entry of type %q, replacing with an empty string",
+					to.Type, field, e.Type))
+			to.Required[field] = ""
 		}
+		seen[field] = true
 	}
 
 	// Dump of remaining required fields of the old entry to
 	// optional fields of the new entry
 	for field, value := range e.Required {
+		if seen[field] {
+			continue
+		}
 		if value != "" {
 			to.Optional[field] = value
 		}
+		seen[field] = true
 	}
 	for field, value := range e.Optional {
+		if seen[field] {
+			continue
+		}
 		if value != "" {
 			to.Optional[field] = value
 		}
+		seen[field] = true
 	}
 
-	return to, nil
+	return to, convertError
 }
 
 // Bib returns a string with all the information of the entry
 // in BibLaTex format.
 func (e *Entry) Bib() string {
-	bib := fmt.Sprintf("@%s{%s,\n", e.Type, e.GetKey())
-	var fields []string
-	for f := range e.Required {
-		fields = append(fields, f)
+	bib := new(strings.Builder)
+
+	// @type{key,
+	fmt.Fprintf(bib, "@%s{%s", e.Type, e.GetKey())
+
+	// field = {value},
+	fields := make([]string, len(e.Required))
+	i := 0
+	for field := range e.Required {
+		fields[i] = field
+		i++
 	}
 	sort.Strings(fields)
 	for _, field := range fields {
 		if value := e.Required[field]; value != "" {
-			bib = fmt.Sprintf("%s  %s = {%s},\n", bib, field, value)
+			fmt.Fprintf(bib, ",\n  %s = {%s}", field, value)
 		}
 	}
 
-	fields = nil
-	for f := range e.Optional {
-		fields = append(fields, f)
+	fields = make([]string, len(e.Optional))
+	i = 0
+	for field := range e.Optional {
+		fields[i] = field
+		i++
 	}
 	sort.Strings(fields)
 	for _, field := range fields {
 		if value := e.Optional[field]; value != "" && field != "abstract" {
-			bib = fmt.Sprintf("%s  %s = {%s},\n", bib, field, value)
+			fmt.Fprintf(bib, ",\n  %s = {%s}", field, value)
 		}
 	}
 	if value, ok := e.Optional["abstract"]; ok {
-		bib = fmt.Sprintf("%s  %s = {%s},\n", bib, "abstract", value)
+		fmt.Fprintf(bib, ",\n  %s = {%s}", "abstract", value)
 	}
 	if file := e.File; file != "" {
-		bib = fmt.Sprintf("%s  %s = {%s},\n", bib, "file", file)
+		fmt.Fprintf(bib, ",\n  %s = {%s}", "file", file)
 	}
 
-	bib = fmt.Sprintf("%s\n}", bib[:len(bib)-2])
-	return bib
+	bib.WriteString("\n}")
+
+	return bib.String()
+}
+
+const bibTemplate = `@[[ .Type ]]{[[ .GetKey ]]
+[[- range $field, $value := .Required -]]
+  [[ if $value -]]
+    [[ ",\n  " ]][[ $field ]] = {[[ $value ]]}
+  [[- end ]]
+[[- end ]]
+
+[[- range $field, $value := .Optional -]]
+  [[ if $value -]]
+    [[ ",\n  " ]][[ $field ]] = {[[ $value ]]}
+  [[- end ]]
+[[- end ]]
+}`
+
+var tmpl = template.Must(
+	template.New("biblatex").
+		Delims("[[", "]]").
+		Parse(bibTemplate),
+)
+
+// bibT returns a string with all the information of the entry
+// in BibLaTex format using a text template.
+//
+// Currently testing performance.
+func (e *Entry) bibT() string {
+	bib := new(strings.Builder)
+
+	err := tmpl.Execute(bib, e)
+	if err != nil {
+		panic(err)
+	}
+
+	return bib.String()
 }
