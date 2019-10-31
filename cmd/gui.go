@@ -33,7 +33,7 @@ import (
 )
 
 var helpString = " /: search, s: sort, space: cite, enter: select, q: quit, ^c: exit "
-var sortby = []string{"title", "author", "date"}
+var sortby = []string{"modified", "title", "author", "date"}
 var sortid = 0
 var showList []*scholar.Entry
 
@@ -359,6 +359,13 @@ func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *s
 }
 
 func guiSort(entries []*scholar.Entry, field string) {
+	if field == "modified" {
+		sort.SliceStable(entries, func(i, j int) bool {
+			return entries[i].Info.ModTime().After(entries[j].Info.ModTime())
+		})
+		return
+	}
+
 	sort.SliceStable(entries, func(i, j int) bool {
 		return entries[i].Required[field] < entries[j].Required[field]
 	})

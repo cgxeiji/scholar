@@ -176,7 +176,8 @@ to set the correct path of this library.`,
 		go func() {
 			defer wg.Done()
 			if dir.IsDir() {
-				d, err := ioutil.ReadFile(filepath.Join(path, dir.Name(), "entry.yaml"))
+				filename := filepath.Join(path, dir.Name(), "entry.yaml")
+				d, err := ioutil.ReadFile(filename)
 				if err != nil {
 					fmt.Println("Could not find data for:", dir.Name())
 					return
@@ -187,6 +188,14 @@ to set the correct path of this library.`,
 				}
 
 				checkDirKey(path, dir.Name(), &e)
+
+				info, err := os.Stat(filename)
+				if err != nil {
+					fmt.Println("Could not find metadata for:", dir.Name())
+					return
+				}
+				e.Info = info
+
 				queue <- &e
 			}
 		}()

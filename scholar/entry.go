@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -81,6 +82,7 @@ type Entry struct {
 	Required map[string]string `yaml:"req"`
 	Optional map[string]string `yaml:"opt"`
 	File     string            `yaml:"file"`
+	Info     os.FileInfo       `yaml:"omitempty"`
 }
 
 // Attach attaches a file path to the entry.
