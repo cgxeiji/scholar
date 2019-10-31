@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 
 	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/cobra"
@@ -33,22 +34,26 @@ import (
 
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
-	Use:   "export",
+	Use:   "export [SEARCH]",
 	Short: "Export entries",
 	Long: `Scholar: a CLI Reference Manager
 
 Print all entries to stdout using biblatex format.
 
-To save to a file run:
+To save all entries to a file run:
 
 	scholar export > references.bib
+
+To specify which entries to export run:
+
+	scholar export SEARCH TERM
 
 --------------------------------------------------------------------------------
 TODO: add different export formats
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		export()
+		export(args)
 	},
 }
 
@@ -56,7 +61,17 @@ func init() {
 	rootCmd.AddCommand(exportCmd)
 }
 
-func export() {
+func export(args []string) {
+	if len(args) != 0 {
+		if found := guiSearch(strings.Join(args, " "), entryList(), searcher); len(found) != 0 {
+			for _, e := range found {
+				fmt.Println(e.Bib())
+				fmt.Println()
+			}
+		}
+		return
+	}
+
 	path := libraryPath()
 	if currentLibrary != "" {
 		path = viper.Sub("LIBRARIES").GetString(currentLibrary)
