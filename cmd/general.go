@@ -289,6 +289,7 @@ func parseCrossref(work *crossref.Work) *scholar.Entry {
 	e.Optional["pages"] = work.Pages
 	e.Optional["number"] = work.Issue
 	e.Optional["doi"] = work.DOI
+	e.Optional["abstract"] = work.Abstract
 
 	return e
 }

@@ -82,7 +82,7 @@ type Entry struct {
 	Required map[string]string `yaml:"req"`
 	Optional map[string]string `yaml:"opt"`
 	File     string            `yaml:"file"`
-	Info     os.FileInfo       `yaml:"omitempty"`
+	Info     os.FileInfo       `yaml:"-"`
 }
 
 // Attach attaches a file path to the entry.
