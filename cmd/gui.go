@@ -37,7 +37,7 @@ var sortby = []string{"modified", "title", "author", "date"}
 var sortid = 0
 var showList []*scholar.Entry
 
-func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
+func guiQuery(entries []*scholar.Entry, search []string) *scholar.Entry {
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		panic(err)
@@ -141,7 +141,8 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 			}
 			v.Editable = true
 			v.Title = "SEARCH BAR"
-			fmt.Fprint(v, search)
+			search_string := strings.Join(search, " ")
+			fmt.Fprint(v, search_string)
 
 			// Check if the initial search is a unique result
 			found := guiSearch(search, entries, searcher)
@@ -155,7 +156,7 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 				showInfoCh <- found[0]
 			}
 
-			v.SetCursor(len(search), 0)
+			v.SetCursor(len(search_string), 0)
 			resetCursorCh <- true
 
 			v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
@@ -177,7 +178,7 @@ func guiQuery(entries []*scholar.Entry, search string) *scholar.Entry {
 				}
 
 				if ch != 0 && mod == 0 || key == gocui.KeyBackspace || key == gocui.KeyBackspace2 || key == gocui.KeyDelete {
-					if found := guiSearch(v.Buffer(), entries, searcher); len(found) > 0 {
+					if found := guiSearch(strings.Split(v.Buffer(), " "), entries, searcher); len(found) > 0 {
 						showInfoCh <- found[0]
 					} else {
 						showInfoCh <- nil
@@ -323,7 +324,7 @@ func guiHideInfo(g *gocui.Gui, v *gocui.View) error {
 	return nil
 }
 
-func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) []*scholar.Entry {
+func guiSearch(search []string, entries []*scholar.Entry, searcher func(string, *scholar.Entry) bool) []*scholar.Entry {
 	var wg sync.WaitGroup
 
 	found := []*scholar.Entry{}
@@ -342,7 +343,13 @@ func guiSearch(search string, entries []*scholar.Entry, searcher func(string, *s
 		e := e
 		go func() {
 			defer wg.Done()
-			if searcher(search, e) {
+
+			// Check intersection of match with each key
+			match := true
+			for _,key := range search {
+				match = match && searcher(key, e)
+			}
+			if match {
 				queue <- e
 			}
 		}()

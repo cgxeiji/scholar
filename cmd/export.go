@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 
 	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/cobra"
@@ -67,7 +66,7 @@ func init() {
 
 func export(args []string) {
 	if len(args) != 0 {
-		if found := guiSearch(strings.Join(args, " "), entryList(), searcher); len(found) != 0 {
+		if found := guiSearch(args, entryList(), searcher); len(found) != 0 {
 			for _, e := range found {
 				fmt.Println(e.Export(exportFormat))
 				if exportFormat != "ris" {

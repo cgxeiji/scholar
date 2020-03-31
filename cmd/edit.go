@@ -21,7 +21,6 @@
 package cmd
 
 import (
-	"strings"
 
 	"github.com/cgxeiji/scholar/scholar"
 	"github.com/spf13/cobra"
@@ -36,7 +35,7 @@ var editCmd = &cobra.Command{
 Edit an entry's metadata using the default's text editor.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
+		if entry := queryEntry(args); entry != nil {
 			if attachFlag != "" {
 				attach(entry, attachFlag)
 				return

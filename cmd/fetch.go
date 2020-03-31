@@ -17,7 +17,6 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -32,7 +31,7 @@ Fetch the file path attached to an entry and print the result to stdout.
 If no file is attached, it exists with 1.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
+		if entry := queryEntry(args); entry != nil {
 			if entry.File != "" {
 				fmt.Println(filepath.Join(libraryPath(), entry.GetKey(), entry.File))
 			} else if url, ok := entry.Optional["url"]; ok && url != "" {

@@ -229,7 +229,7 @@ func checkDirKey(path, dir string, e *scholar.Entry) {
 		filepath.Join(path, e.GetKey()))
 }
 
-func queryEntry(search string) *scholar.Entry {
+func queryEntry(search []string) *scholar.Entry {
 	var entry *scholar.Entry
 
 	if viper.GetBool("GENERAL.interactive") != viper.GetBool("interactive") {
