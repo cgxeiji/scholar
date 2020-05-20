@@ -101,6 +101,8 @@ func open(file string) error {
 	case "windows":
 		cmd = "cmd"
 		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
 	default:
 		cmd = "xdg-open"
 	}
