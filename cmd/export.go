@@ -49,7 +49,7 @@ To specify which entries to export run:
 	scholar export SEARCH TERM
 
 --------------------------------------------------------------------------------
-TODO: add different export formats
+TODO: add more export formats
 --------------------------------------------------------------------------------
 `,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -57,16 +57,22 @@ TODO: add different export formats
 	},
 }
 
+var exportFormat string
+
 func init() {
 	rootCmd.AddCommand(exportCmd)
+
+	exportCmd.Flags().StringVarP(&exportFormat, "format", "f", "biblatex", "Specify the export format (avail: biblatex, bibtex, ris)")
 }
 
 func export(args []string) {
 	if len(args) != 0 {
 		if found := guiSearch(strings.Join(args, " "), entryList(), searcher); len(found) != 0 {
 			for _, e := range found {
-				fmt.Println(e.Bib())
-				fmt.Println()
+				fmt.Println(e.Export(exportFormat))
+				if exportFormat != "ris" {
+					fmt.Println()
+				}
 			}
 		}
 		return
@@ -95,8 +101,10 @@ func export(args []string) {
 				panic(err)
 			}
 
-			fmt.Println(e.Bib())
-			fmt.Println()
+			fmt.Println(e.Export(exportFormat))
+			if exportFormat != "ris" {
+				fmt.Println()
+			}
 		}
 	}
 }

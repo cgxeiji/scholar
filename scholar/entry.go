@@ -237,6 +237,14 @@ func (e *Entry) Bib() string {
 	return bib.String()
 }
 
+// Export returns a string with all the information of the entry in the given
+// format.
+func (e *Entry) Export(format string) string {
+	ex := getExporter(format)
+
+	return ex.export(e)
+}
+
 const bibTemplate = `@[[ .Type ]]{[[ .GetKey ]]
 [[- range $field, $value := .Required -]]
   [[ if $value -]]
