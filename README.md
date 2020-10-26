@@ -35,13 +35,13 @@ Export entries to BibLaTex by default:
 ```
 $ scholar export > references.bib
 
-
 $ scholar export --library=research > research.bib
 ```
 
 Or choose other formats:
 ```
 $ scholar export --format=bibtex > references.bib
+
 $ scholar export --format=ris > references.bib
 ```
 
