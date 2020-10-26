@@ -31,11 +31,18 @@ $ scholar open einstein --library=research
 $ scholar add Harry Potter.epub --library=books
 ```
 
-Export entries to BibLaTex:
+Export entries to BibLaTex by default:
 ```
 $ scholar export > references.bib
 
+
 $ scholar export --library=research > research.bib
+```
+
+Or choose other formats:
+```
+$ scholar export --format=bibtex > references.bib
+$ scholar export --format=ris > references.bib
 ```
 
 And much more:
@@ -118,7 +125,7 @@ query. Also, `remove` will delete the entry without confirmation.
 
 ### Export
 
-- [ ] Add different export formats.
+- [x] Add different export formats.
 
 ### Open
 
