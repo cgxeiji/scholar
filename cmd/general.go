@@ -186,7 +186,8 @@ to set the correct path of this library.`,
 				}
 				var e scholar.Entry
 				if err := yaml.Unmarshal(d, &e); err != nil {
-					panic(err)
+					panic(fmt.Errorf("%s -- in directory %s",
+						err.Error(), dir.Name()))
 				}
 
 				checkDirKey(path, dir.Name(), &e)
