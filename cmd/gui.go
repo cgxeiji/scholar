@@ -141,8 +141,8 @@ func guiQuery(entries []*scholar.Entry, search []string) *scholar.Entry {
 			}
 			v.Editable = true
 			v.Title = "SEARCH BAR"
-			search_string := strings.Join(search, " ")
-			fmt.Fprint(v, search_string)
+			searchString := strings.Join(search, " ")
+			fmt.Fprint(v, searchString)
 
 			// Check if the initial search is a unique result
 			found := guiSearch(search, entries, searcher)
@@ -156,7 +156,7 @@ func guiQuery(entries []*scholar.Entry, search []string) *scholar.Entry {
 				showInfoCh <- found[0]
 			}
 
-			v.SetCursor(len(search_string), 0)
+			v.SetCursor(len(searchString), 0)
 			resetCursorCh <- true
 
 			v.Editor = gocui.EditorFunc(func(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
