@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -40,7 +39,7 @@ Remove an entry from the library.  If interactive mode is disabled, the entry
 will be removed without confirmation.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entry := queryEntry(strings.Join(args, " ")); entry != nil {
+		if entry := queryEntry(args); entry != nil {
 			path := filepath.Join(libraryPath(), entry.GetKey())
 			if viper.GetBool("GENERAL.interactive") != viper.GetBool("interactive") {
 				if askYesNo(fmt.Sprintf("Do you want to remove %s?", path)) {
